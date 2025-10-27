@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+ETICS Fastener Configurator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a web-based configurator designed to help users select the correct construction fasteners for External Thermal Insulation Composite Systems (ETICS). It provides an intuitive, step-by-step wizard to guide users through the necessary parameters and instantly receive technically accurate fastener recommendations.
+What It Does
 
-## Available Scripts
+The primary goal of this application is to simplify the complex process of choosing the right ETICS fastener. By providing a few key details about their project, users can be confident they are getting a recommendation that is both safe and cost-effective.
+Key Features
 
-In the project directory, you can run:
+    Step-by-Step Wizard: The application guides the user through a series of simple questions to gather all the necessary project data.
 
-### `npm start`
+    Detailed Input Parameters: The calculation is based on the following user-provided inputs:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+        Substrate (Rodzaj podłoża): The type of wall material (e.g., Concrete, Brick, Aerated Concrete).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+        Insulation Type (Typ izolacji): The material being fastened (e.g., Styrofoam or Mineral Wool).
 
-### `npm test`
+        Insulation Thickness (Grubość izolacji): The thickness of the insulation material in centimeters.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+        Adhesive Thickness (Grubość warstwy kleju): The thickness of the adhesive layer.
 
-### `npm run build`
+        Recessed Mounting (Montaż zagłębiony): Whether the fastener will be installed flush or recessed into the insulation.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Intelligent Calculation Logic
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The configurator's core is a powerful calculation engine that uses embedded technical data to provide accurate recommendations.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    Dynamic Anchorage Depth (hef): The application uses the correct effective anchorage depth (hef) based on the selected substrate, referencing technical data sheets for accuracy.
 
-### `npm run eject`
+    Mounting Type Logic: It correctly adjusts the required fastener length based on whether recessed mounting is selected, which can make shorter fasteners viable.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    Material Compatibility: The engine automatically filters fasteners based on technical requirements, such as only recommending fasteners with a metal pin for use with mineral wool.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    Accurate Length Calculation: It calculates the minimum required fastener length by combining insulation thickness, adhesive thickness, anchorage depth, and a tolerance value, then suggests the next available size in the product line.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Clear Recommendations
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+After completing the steps, the user is presented with a clear summary of their inputs and a table of recommended fasteners.
 
-## Learn More
+    Detailed Results: For each valid product, the table displays:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+        Product Name (Nazwa)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+        Recommended Length in mm (Długość)
 
-### Code Splitting
+        Effective Anchorage Depth for the substrate in mm (hef)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+        Material (Materiał)
 
-### Analyzing the Bundle Size
+    Helpful Fallback: If no product in the database meets the user's specific (and often extreme) requirements, a message is displayed prompting them to contact the company's technical support for a custom solution.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Technology
 
-### Making a Progressive Web App
+This is a fully client-side application built with modern web technologies:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    React: For the user interface and state management.
 
-### Advanced Configuration
+    Material-UI (MUI): For a clean, responsive, and professional UI component library.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
