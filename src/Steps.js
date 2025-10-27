@@ -16,12 +16,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
+  Paper, // Import Paper for the summary table container
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import WarningIcon from '@mui/icons-material/Warning';
 import { substrates, insulationTypes } from './data';
+
 
 // Step0, Step1, Step2, StepAdhesive, and StepRecessed components remain unchanged...
 // ... (omitted for brevity)
@@ -196,22 +196,37 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
     setStep(0);
   };
 
+  const summaryData = [
+    { name: 'Podłoże', value: substrateLabel },
+    { name: 'Typ izolacji', value: insulationTypeLabel },
+    { name: 'Grubość izolacji', value: `${hD} cm` },
+    { name: 'Grubość warstwy kleju', value: `${adhesiveThickness} cm` },
+    { name: 'Montaż zagłębiony', value: recessed ? 'Tak' : 'Nie' },
+  ];
+
   return (
     <Box>
-      <Box sx={{ mb: 2, p: 1, border: '1px solid grey', borderRadius: 1 }}>
-        <Typography variant="body1"><b>Podłoże:</b> {substrateLabel}</Typography>
-        <Typography variant="body1"><b>Typ izolacji:</b> {insulationTypeLabel}</Typography>
-        <Typography variant="body1"><b>Grubość izolacji:</b> {hD} cm</Typography>
-        <Typography variant="body1"><b>Grubość warstwy kleju:</b> {adhesiveThickness} cm</Typography>
-        <Typography variant="body1"><b>Montaż zagłębiony:</b> {recessed ? 'Tak' : 'Nie'}</Typography>
-      </Box>
+      {/* --- THIS BOX IS NOW A TWO-COLUMN TABLE --- */}
+      <TableContainer component={Paper} sx={{ mb: 3 }}>
+        <Table size="small" aria-label="summary of selections">
+          <TableBody>
+            {summaryData.map((row) => (
+              <TableRow key={row.name}>
+                <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
+                  {row.name}
+                </TableCell>
+                <TableCell align="right">{row.value}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {recommendations.length > 0 ? (
-        <TableContainer sx={{ mt: 2, maxHeight: '65vh', overflowY: 'auto' }}>
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
           <Table stickyHeader aria-label="recommended fasteners">
             <TableHead>
               <TableRow key="header">
-                {/* REMOVED 'hef (mm)' and 'Ostrzeżenie' columns */}
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Nazwa</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Materiał</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Maks. grubość izolacji (cm)</TableCell>
@@ -220,7 +235,6 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
             <TableBody>
               {recommendations.map((rec) => (
                 <TableRow key={rec.name}>
-                  {/* REMOVED cells for rec.hef and rec.warning */}
                   <TableCell sx={{ textAlign: 'center' }}>{rec.name} {rec.laRecommended} mm</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.material}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.maxHD.toFixed(1)}</TableCell>
@@ -230,7 +244,6 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           </Table>
         </TableContainer>
       ) : (
-        // MODIFIED message for no recommendations
         <Typography variant="h6" align="center" sx={{ my: 4, color: 'text.primary' }}>
           Nie znaleziono odpowiedniego produktu. Prosimy o kontakt telefoniczny z naszym działem technicznym w celu uzyskania pomocy.
         </Typography>
