@@ -42,7 +42,7 @@ function App() {
   const [formData, setFormData] = useState({
     substrate: 'A',
     insulationType: 'EPS',
-    hD: 1,
+    hD: 12,
     adhesiveThickness: 1,
     recessed: false,
   });
@@ -102,8 +102,6 @@ function App() {
           return null;
         }
 
-        // --- THIS IS THE MODIFIED LINE ---
-        // It now calculates the max thickness for the specific recommended fastener length (laAvailable)
         const maxHD = (laAvailable - hefForSubstrate - tfixMm - ttol) / 10;
 
         return { ...model, laRecommended: laAvailable, maxHD, hef: hefForSubstrate };
@@ -155,7 +153,7 @@ function App() {
     'Grubość izolacji',
     'Grubość warstwy kleju',
     'Montaż zagłębiony ?',
-    'Rekomendacja',
+    'Rekomendacja dla',
   ];
 
   const stepComponents = [

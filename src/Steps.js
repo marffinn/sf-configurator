@@ -128,7 +128,7 @@ export const StepAdhesive = ({ adhesiveThickness, setAdhesiveThickness, errors, 
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness} cm</Typography>
+      <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness * 10} mm</Typography>
       <Slider
         value={adhesiveThickness}
         onChange={handleAdhesiveThicknessChange}
@@ -189,7 +189,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
     { name: 'Podłoże', value: substrateLabel },
     { name: 'Typ izolacji', value: insulationTypeLabel },
     { name: 'Grubość izolacji', value: `${hD} cm` },
-    { name: 'Grubość warstwy kleju', value: `${adhesiveThickness} cm` },
+    { name: 'Grubość warstwy kleju', value: `${adhesiveThickness * 10} mm` },
     { name: 'Montaż zagłębiony', value: recessed ? 'Tak' : 'Nie' },
   ];
 
