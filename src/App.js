@@ -4,7 +4,6 @@ import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, S
 import { models } from './data';
 import { Step0, Step1, Step2, StepAdhesive, StepRecessed, Step4 } from './Steps';
 
-// Theme remains the same
 const starfixTheme = createTheme({
   palette: {
     mode: 'light',
@@ -50,8 +49,6 @@ function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // All functions (updateFormData, validateStep, calculateLa, etc.) remain the same...
-  // ... (omitted for brevity)
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -90,15 +87,26 @@ function App() {
 
     const recs = filteredModels
       .map(model => {
-        const laMin = model.hef + hDEffMm + tfixMm + ttol;
+        const hefForSubstrate = typeof model.hef === 'object'
+          ? model.hef[substrate]
+          : model.hef;
+
+        if (hefForSubstrate === undefined) {
+          return null;
+        }
+
+        const laMin = hefForSubstrate + hDEffMm + tfixMm + ttol;
         const laAvailable = model.availableLengths.find(la => la >= laMin);
 
         if (!laAvailable) {
           return null;
         }
 
-        const maxHD = (Math.max(...model.availableLengths) - model.hef - tfixMm - ttol) / 10;
-        return { ...model, laRecommended: laAvailable, maxHD };
+        // --- THIS IS THE MODIFIED LINE ---
+        // It now calculates the max thickness for the specific recommended fastener length (laAvailable)
+        const maxHD = (laAvailable - hefForSubstrate - tfixMm - ttol) / 10;
+
+        return { ...model, laRecommended: laAvailable, maxHD, hef: hefForSubstrate };
       })
       .filter(Boolean)
       .sort((a, b) => a.laRecommended - b.laRecommended);
@@ -106,7 +114,6 @@ function App() {
     setRecommendations(recs);
     setStep(5);
   };
-
 
   const nextStep = () => {
     if (validateStep(step)) setStep((prev) => prev + 1);
@@ -128,7 +135,6 @@ function App() {
       setStep(index);
     }
   };
-
 
   const handleStartOver = () => {
     setFormData({
@@ -166,7 +172,6 @@ function App() {
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
 
-        {/* --- ADDED LOGO HERE --- */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <img
             src={`${process.env.PUBLIC_URL}/logotyp_outline.svg`}
@@ -179,11 +184,19 @@ function App() {
           />
         </Box>
 
-        <Typography variant="h4" align="center" gutterBottom>
+        <Typography
+          variant="h4"
+          align="center"
+          sx={{
+            fontWeight: 300,
+            letterSpacing: '1.5px',
+            my: 3,
+          }}
+        >
           Konfigurator Łączników ETICS
         </Typography>
 
-        <MuiStepper activeStep={step} alternativeLabel sx={{ mt: 2, mb: 4 }}>
+        <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
           {stepLabels.map((label, index) => (
             <Step key={label} completed={step > index}>
               <StepLabel

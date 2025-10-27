@@ -16,17 +16,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper, // Import Paper for the summary table container
+  Paper,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { substrates, insulationTypes } from './data';
 
-
-// Step0, Step1, Step2, StepAdhesive, and StepRecessed components remain unchanged...
-// ... (omitted for brevity)
-
-// Step0 Component
 export const Step0 = ({ substrate, setSubstrate, errors, nextStep, prevStep }) => {
   const handleSubstrateChange = (event) => {
     setSubstrate(event.target.value);
@@ -60,7 +55,6 @@ export const Step0 = ({ substrate, setSubstrate, errors, nextStep, prevStep }) =
   );
 };
 
-// Step1 Component
 export const Step1 = ({ insulationType, setInsulationType, errors, nextStep, prevStep }) => {
   const handleInsulationTypeChange = (event) => {
     setInsulationType(event.target.value);
@@ -97,7 +91,6 @@ export const Step1 = ({ insulationType, setInsulationType, errors, nextStep, pre
   );
 };
 
-// Step2 Component
 export const Step2 = ({ hD, setHD, errors, nextStep, prevStep }) => {
   const handleHDChange = (event, newValue) => {
     setHD(newValue);
@@ -128,7 +121,6 @@ export const Step2 = ({ hD, setHD, errors, nextStep, prevStep }) => {
   );
 };
 
-// StepAdhesive Component (for adhesive thickness)
 export const StepAdhesive = ({ adhesiveThickness, setAdhesiveThickness, errors, nextStep, prevStep }) => {
   const handleAdhesiveThicknessChange = (event, newValue) => {
     setAdhesiveThickness(newValue);
@@ -159,7 +151,6 @@ export const StepAdhesive = ({ adhesiveThickness, setAdhesiveThickness, errors, 
   );
 };
 
-// StepRecessed Component (for recessed mounting)
 export const StepRecessed = ({ recessed, setRecessed, calculateLa, errors, nextStep, prevStep }) => {
   const handleRecessedChange = (event) => {
     setRecessed(event.target.checked);
@@ -186,8 +177,6 @@ export const StepRecessed = ({ recessed, setRecessed, calculateLa, errors, nextS
   );
 };
 
-
-// --- MODIFIED Step4 Component ---
 export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessed }) => {
   const substrateLabel = substrates.find(s => s.value === substrate)?.label;
   const insulationTypeLabel = insulationTypes.find(i => i.value === insulationType)?.label;
@@ -206,7 +195,6 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
 
   return (
     <Box>
-      {/* --- THIS BOX IS NOW A TWO-COLUMN TABLE --- */}
       <TableContainer component={Paper} sx={{ mb: 3 }}>
         <Table size="small" aria-label="summary of selections">
           <TableBody>
@@ -228,6 +216,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
             <TableHead>
               <TableRow key="header">
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Nazwa</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>hef (mm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Materiał</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Maks. grubość izolacji (cm)</TableCell>
               </TableRow>
@@ -236,6 +225,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
               {recommendations.map((rec) => (
                 <TableRow key={rec.name}>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.name} {rec.laRecommended} mm</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{rec.hef}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.material}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.maxHD.toFixed(1)}</TableCell>
                 </TableRow>

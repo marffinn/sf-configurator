@@ -2,7 +2,14 @@ export const models = [
 
   {
     name: 'LDK TZ',
-    hef: 60,
+    // hef is now an object based on the provided technical data table
+    hef: {
+      'A': 25, // Beton zwykły
+      'B': 60, // Cegły ceramiczne MZ (assuming this is the primary 'B' category)
+      'C': 80, // For all perforated brick types
+      'D': 80, // Beton na kruszywie lekkim
+      'E': 80  // Beton komórkowy
+    },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420],
     material: 'polipropylen',
@@ -11,7 +18,14 @@ export const models = [
   },
   {
     name: 'LDK TN',
-    hef: 65,
+    // hef is now an object
+    hef: {
+      'A': 25,
+      'B': 60,
+      'C': 80,
+      'D': 80,
+      'E': 80
+    },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
@@ -20,8 +34,15 @@ export const models = [
   },
   {
     name: 'LDH TZ',
-    hef: 25,
-    categories: ['C'],
+    // hef is now an object
+    hef: {
+      'A': 25,
+      'B': 80, // Assuming Cegły silikatowe for 'B'
+      'C': 80,
+      'D': 80,
+      'E': 80
+    },
+    categories: ['C'], // Note: This model is limited to 'C' in your original data
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
     hasMetalPin: false,
@@ -29,8 +50,15 @@ export const models = [
   },
   {
     name: 'LDH TN',
-    hef: 25,
-    categories: ['C'],
+    // hef is now an object
+    hef: {
+      'A': 25,
+      'B': 80,
+      'C': 80,
+      'D': 80,
+      'E': 80
+    },
+    categories: ['C'], // Note: This model is limited to 'C' in your original data
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
     hasMetalPin: true,
@@ -38,7 +66,7 @@ export const models = [
   },
   {
     name: 'LFH TZ',
-    hef: 36,
+    hef: 36, // This model was not in the table, so it retains a single hef value
     categories: ['A', 'B', 'C'],
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -47,7 +75,7 @@ export const models = [
   },
   {
     name: 'LEH TN',
-    hef: 56,
+    hef: 56, // This model was not in the table, so it retains a single hef value
     categories: ['A', 'B', 'C'],
     availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -56,7 +84,7 @@ export const models = [
   },
   {
     name: 'LFH GZN',
-    hef: 35,
+    hef: 35, // This model was not in the table, so it retains a single hef value
     categories: ['A', 'B', 'C'],
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -65,7 +93,7 @@ export const models = [
   },
   {
     name: 'LDK GZN',
-    hef: 60,
+    hef: 60, // This model was not in the table, so it retains a single hef value
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
