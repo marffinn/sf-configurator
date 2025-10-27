@@ -23,6 +23,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import WarningIcon from '@mui/icons-material/Warning';
 import { substrates, insulationTypes } from './data';
 
+// Step0, Step1, Step2, StepAdhesive, and StepRecessed components remain unchanged...
+// ... (omitted for brevity)
+
 // Step0 Component
 export const Step0 = ({ substrate, setSubstrate, errors, nextStep, prevStep }) => {
   const handleSubstrateChange = (event) => {
@@ -183,7 +186,8 @@ export const StepRecessed = ({ recessed, setRecessed, calculateLa, errors, nextS
   );
 };
 
-// Step4 Component
+
+// --- MODIFIED Step4 Component ---
 export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessed }) => {
   const substrateLabel = substrates.find(s => s.value === substrate)?.label;
   const insulationTypeLabel = insulationTypes.find(i => i.value === insulationType)?.label;
@@ -207,37 +211,29 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           <Table stickyHeader aria-label="recommended fasteners">
             <TableHead>
               <TableRow key="header">
+                {/* REMOVED 'hef (mm)' and 'Ostrzeżenie' columns */}
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Nazwa</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>hef (mm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Materiał</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Maks. grubość izolacji (cm)</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ostrzeżenie</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {recommendations.map((rec) => (
                 <TableRow key={rec.name}>
+                  {/* REMOVED cells for rec.hef and rec.warning */}
                   <TableCell sx={{ textAlign: 'center' }}>{rec.name} {rec.laRecommended} mm</TableCell>
-                  <TableCell sx={{ textAlign: 'center' }}>{rec.hef}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.material}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.maxHD.toFixed(1)}</TableCell>
-                  <TableCell sx={{ textAlign: 'center', color: rec.warning ? 'error.main' : 'text.primary', minWidth: 200 }}>
-                    {rec.warning ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        <Tooltip title={rec.warning} placement="top">
-                          <WarningIcon fontSize="small" color="error" />
-                        </Tooltip>
-                        {rec.warning}
-                      </Box>
-                    ) : 'Brak'}
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
       ) : (
-        <Typography color="error">Brak odpowiednich łączników w naszym asortymencie dla podanych parametrów.</Typography>
+        // MODIFIED message for no recommendations
+        <Typography variant="h6" align="center" sx={{ my: 4, color: 'text.primary' }}>
+          Nie znaleziono odpowiedniego produktu. Prosimy o kontakt telefoniczny z naszym działem technicznym w celu uzyskania pomocy.
+        </Typography>
       )}
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep}>Wstecz</Button>
