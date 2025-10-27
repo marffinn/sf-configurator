@@ -1,13 +1,5 @@
 export const models = [
-  {
-    name: 'LXK H',
-    hef: 60,
-    categories: ['A', 'B'],
-    availableLengths: [160, 180, 200, 220, 260],
-    material: 'polipropylen',
-    hasMetalPin: false,
-    maxFixtureThickness: [100, 120, 140, 160, 200]
-  },
+
   {
     name: 'LDK TZ',
     hef: 60,
@@ -57,10 +49,10 @@ export const models = [
     name: 'LEH TN',
     hef: 56,
     categories: ['A', 'B', 'C'],
-    availableLengths: [160, 180, 200, 220, 240, 260, 420],
+    availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
-    maxFixtureThickness: [100, 120, 140, 160, 180, 200, 360]
+    maxFixtureThickness: [100, 120, 140, 160, 180, 200]
   },
   {
     name: 'LFH GZN',

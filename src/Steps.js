@@ -16,9 +16,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import WarningIcon from '@mui/icons-material/Warning';
 import { substrates, insulationTypes } from './data';
 
 // Step0 Component
@@ -181,20 +183,17 @@ export const StepRecessed = ({ recessed, setRecessed, calculateLa, errors, nextS
   );
 };
 
-// Step4 Component (from provided context)
+// Step4 Component
 export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessed }) => {
-  // Find the display labels for the selected values
   const substrateLabel = substrates.find(s => s.value === substrate)?.label;
   const insulationTypeLabel = insulationTypes.find(i => i.value === insulationType)?.label;
 
   const handleStartOver = () => {
-    // Assuming setStep(0) is the way to reset the form
     setStep(0);
   };
 
   return (
     <Box>
-
       <Box sx={{ mb: 2, p: 1, border: '1px solid grey', borderRadius: 1 }}>
         <Typography variant="body1"><b>Podłoże:</b> {substrateLabel}</Typography>
         <Typography variant="body1"><b>Typ izolacji:</b> {insulationTypeLabel}</Typography>
@@ -211,6 +210,8 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Nazwa</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>hef (mm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Materiał</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Maks. grubość izolacji (cm)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Ostrzeżenie</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -219,13 +220,24 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                   <TableCell sx={{ textAlign: 'center' }}>{rec.name} {rec.laRecommended} mm</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.hef}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>{rec.material}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{rec.maxHD.toFixed(1)}</TableCell>
+                  <TableCell sx={{ textAlign: 'center', color: rec.warning ? 'error.main' : 'text.primary', minWidth: 200 }}>
+                    {rec.warning ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Tooltip title={rec.warning} placement="top">
+                          <WarningIcon fontSize="small" color="error" />
+                        </Tooltip>
+                        {rec.warning}
+                      </Box>
+                    ) : 'Brak'}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
       ) : (
-        <Typography color="error">Brak pasujących modeli. Skontaktuj się z nami!</Typography>
+        <Typography color="error">Brak odpowiednich łączników w naszym asortymencie dla podanych parametrów.</Typography>
       )}
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep}>Wstecz</Button>

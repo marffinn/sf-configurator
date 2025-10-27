@@ -63,10 +63,10 @@ function App() {
 
   const calculateLa = () => {
     if (!validateStep(4)) return;
+
     const { substrate, insulationType, hD, adhesiveThickness, recessed } = formData;
     const hDEff = recessed ? hD - 2 : hD;
-    const tfix = adhesiveThickness;
-    const tfixMm = tfix * 10;
+    const tfixMm = adhesiveThickness * 10;
     const hDEffMm = hDEff * 10;
     const ttol = 10;
 
@@ -75,17 +75,27 @@ function App() {
       (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin))
     );
 
-    const recs = filtered.map(model => {
-      const laMin = model.hef + hDEffMm + tfixMm + ttol;
-      const laAvailable = model.availableLengths.find(la => la >= laMin) || Math.max(...model.availableLengths);
-      const maxFixture = laAvailable - model.hef;
-      const warning = laAvailable < laMin ? 'Długość może nie spełniać wymagań' : (hDEffMm > maxFixture ? 'Grubość izolacji przekracza maksymalną dopuszczalną' : '');
-      return { ...model, laRecommended: laAvailable, warning };
-    });
-
-    if (!recs.length) {
-      recs = [{ name: 'Rozwiązanie niestandardowe', laRecommended: 'Skontaktuj się z nami', material: 'N/D', warning: 'Brak pasujących modeli' }];
+    if (!filtered.length) {
+      console.warn(`Brak pasujących modeli dla: podłoże=${substrate}, izolacja=${insulationType}`);
+      setRecommendations([]);
+      setStep(5);
+      return;
     }
+
+    const recs = filtered
+      .map(model => {
+        const laMin = model.hef + hDEffMm + tfixMm + ttol;
+        const laAvailable = model.availableLengths.find(la => la >= laMin) || Math.max(...model.availableLengths);
+        const maxFixture = laAvailable - model.hef;
+        const maxHD = (Math.max(...model.availableLengths) - model.hef - tfixMm - ttol) / 10; // Maks. grubość izolacji w cm
+        const warning = laAvailable < laMin
+          ? `Długość łącznika (${laAvailable} mm) jest mniejsza od wymaganej (${laMin} mm) dla modelu ${model.name}`
+          : hDEffMm > maxFixture
+            ? `Grubość izolacji (${hDEffMm} mm) przekracza maksymalną dopuszczalną (${maxFixture} mm) dla modelu ${model.name}`
+            : '';
+        return { ...model, laRecommended: laAvailable, warning, maxHD };
+      })
+      .sort((a, b) => a.laRecommended - b.laRecommended);
 
     setRecommendations(recs);
     setStep(5);
