@@ -1,67 +1,84 @@
 export const models = [
   {
     name: 'LXK H',
-    hef: 60, // Matches effective anchor depth assumption
+    hef: 60,
     categories: ['A', 'B'],
     availableLengths: [160, 180, 200, 220, 260],
     material: 'polipropylen',
-    hasMetalPin: false
+    hasMetalPin: false,
+    maxFixtureThickness: [100, 120, 140, 160, 200]
   },
   {
     name: 'LDK TZ',
-    hef: 60, // Min (90 - 30) from LDK 10 90 TZ
+    hef: 60,
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420],
     material: 'polipropylen',
-    hasMetalPin: false
+    hasMetalPin: false,
+    maxFixtureThickness: [30, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 280, 320, 360]
   },
   {
     name: 'LDK TN',
-    hef: 65, // Min (105 - 40) from LDK 10 100 TN
+    hef: 65,
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
-    hasMetalPin: true
+    hasMetalPin: true,
+    maxFixtureThickness: [40, 80, 100, 120, 140, 160, 180, 200, 220, 240]
   },
   {
     name: 'LDH TZ',
-    hef: 25, // From Porotherm 25 table
+    hef: 25,
     categories: ['C'],
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
-    hasMetalPin: false
+    hasMetalPin: false,
+    maxFixtureThickness: [40, 60, 80, 100, 120]
   },
   {
     name: 'LDH TN',
-    hef: 25, // From Porotherm 25 table
+    hef: 25,
     categories: ['C'],
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
-    hasMetalPin: true
+    hasMetalPin: true,
+    maxFixtureThickness: [40, 60, 80, 100, 120]
   },
   {
     name: 'LFH TZ',
-    hef: 36, // Min (116 - 80) from LFH 10 140 TZ
+    hef: 36,
     categories: ['A', 'B', 'C'],
-    availableLengths: [140, 160, 180, 200, 220, 240, 260],
+    availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
-    hasMetalPin: true
+    hasMetalPin: true,
+    maxFixtureThickness: [60, 80, 100, 120, 140, 160, 180, 200]
   },
   {
     name: 'LEH TN',
-    hef: 56, // Min (176 - 120) from LEH 10 160 TN
-    categories: ['A', 'B', 'C'], // Assuming 'A' is correct based on filtering
-    availableLengths: [160, 180, 200, 220, 240, 260, 420], // Added 420mm length
+    hef: 56,
+    categories: ['A', 'B', 'C'],
+    availableLengths: [160, 180, 200, 220, 240, 260, 420],
     material: 'polietylen HDPE',
-    hasMetalPin: true
+    hasMetalPin: true,
+    maxFixtureThickness: [100, 120, 140, 160, 180, 200, 360]
   },
   {
     name: 'LFH GZN',
-    hef: 35, // Min (95 - 60) from LFH 10 100 GZN
+    hef: 35,
     categories: ['A', 'B', 'C'],
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
-    hasMetalPin: true
+    hasMetalPin: true,
+    maxFixtureThickness: [40, 60, 80, 100, 120, 140, 160, 180, 200]
+  },
+  {
+    name: 'LDK GZN',
+    hef: 60,
+    categories: ['A', 'B', 'C', 'D', 'E'],
+    availableLengths: [80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
+    material: 'polipropylen',
+    hasMetalPin: false,
+    maxFixtureThickness: [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240]
   }
 ];
 

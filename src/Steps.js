@@ -174,7 +174,7 @@ export const StepRecessed = ({ recessed, setRecessed, calculateLa, errors, nextS
           Wstecz
         </Button>
         <Button variant="contained" onClick={calculateLa} endIcon={<ArrowForwardIcon />}>
-          Oblicz rekomendacje
+          Pokaż rekomendacje
         </Button>
       </Box>
     </Box>
