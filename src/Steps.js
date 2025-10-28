@@ -195,15 +195,15 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
 
   return (
     <Box>
-      <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto', backgroundColor: 'grey.100', boxShadow: 'none' }}>
         <Table size="small" aria-label="summary of selections">
           <TableBody>
             {summaryData.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                <TableCell component="th" scope="row" sx={{ fontWeight: 'normal', color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>
                   {row.name}
                 </TableCell>
-                <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '1rem' } }}>{row.value}</TableCell>
+                <TableCell align="right" sx={{ color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>{row.value}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -218,7 +218,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>hef (mm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Materiał</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Maks. grubość (cm)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Maks. grubość izolacji (cm)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
