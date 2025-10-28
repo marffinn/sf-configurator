@@ -189,18 +189,23 @@ function App() {
             fontWeight: 300,
             letterSpacing: '1.5px',
             my: 3,
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
           }}
         >
           Konfigurator Łączników ETICS
         </Typography>
 
-        <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
+        <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
           {stepLabels.map((label, index) => (
-            <Step key={label} completed={step > index}>
+            <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
               <StepLabel
                 onClick={() => goToStep(index)}
                 sx={{
                   cursor: 'pointer',
+                  fontSize: { xs: '0.65rem', sm: '0.875rem' },
+                  '& .MuiStepLabel-label': {
+                    fontSize: { xs: '0.65rem', sm: '0.875rem' },
+                  }
                 }}
               >
                 {label}
