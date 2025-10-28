@@ -215,19 +215,19 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           <Table stickyHeader aria-label="recommended fasteners" size="small">
             <TableHead>
               <TableRow key="header">
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>hef (mm)</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Materiał</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Maks. grubość izolacji (cm)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>hef (mm)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Materiał</TableCell>
+                <TableCell sx={{ fontWeight: 'normal', color: 'grey.500', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Maks. grubość (cm)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {recommendations.map((rec) => (
                 <TableRow key={rec.name}>
-                  <TableCell sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.name} {rec.laRecommended} mm</TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.hef}</TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>{rec.material}</TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.maxHD.toFixed(1)}</TableCell>
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.name} {rec.laRecommended} mm</TableCell>
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.hef}</TableCell>
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>{rec.material}</TableCell>
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.maxHD.toFixed(1)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

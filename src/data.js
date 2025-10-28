@@ -62,7 +62,8 @@ export const models = [
   },
   {
     name: 'LFH TZ',
-    hef: 36,
+    // --- UPDATED THIS VALUE FROM 36 TO 40 ---
+    hef: 40,
     categories: ['A', 'B', 'C'],
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -71,7 +72,8 @@ export const models = [
   },
   {
     name: 'LEH TN',
-    hef: 56,
+    // --- UPDATED THIS VALUE FROM 56 TO 40 ---
+    hef: 40,
     categories: ['A', 'B', 'C'],
     availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -80,7 +82,8 @@ export const models = [
   },
   {
     name: 'LFH GZN',
-    hef: 35,
+    // --- UPDATED THIS VALUE FROM 35 TO 40 ---
+    hef: 40,
     categories: ['A', 'B', 'C'],
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
@@ -89,7 +92,6 @@ export const models = [
   },
   {
     name: 'LDK GZN',
-    // --- UPDATED THIS VALUE FROM 60 TO 80 ---
     hef: 80,
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
