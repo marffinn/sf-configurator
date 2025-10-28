@@ -212,7 +212,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
 
       {recommendations.length > 0 ? (
         <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto' }}>
-          <Table stickyHeader aria-label="recommended fasteners" size={{ xs: 'small', sm: 'medium' }}>
+          <Table stickyHeader aria-label="recommended fasteners" size="small">
             <TableHead>
               <TableRow key="header">
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
