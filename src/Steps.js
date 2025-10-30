@@ -1,4 +1,4 @@
-// src/Steps.js
+// src/Steps.js – ZAKTUALIZOWANY (usunięto kolumnę "Uwagi")
 import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
@@ -142,7 +142,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>hef (mm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Materiał</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Uwagi</TableCell>
+                {/* KOLUMNA "UWAGI" USUNIĘTA */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -151,7 +151,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                   <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.name} {rec.laRecommended} mm</TableCell>
                   <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.hef}</TableCell>
                   <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>{rec.material}</TableCell>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>{rec.uwagi}</TableCell>
+                  {/* KOMÓRKA "UWAGI" USUNIĘTA */}
                 </TableRow>
               ))}
             </TableBody>

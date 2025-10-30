@@ -1,4 +1,4 @@
-// src/App.js – ZREKONSTRUOWANY z main.0976d9b8.js (struktura identyczna z Twoim kodem)
+// src/App.js – PEŁNY, ZAKTUALIZOWANY (LXK 10 H promowany jako pierwszy)
 import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel } from '@mui/material';
@@ -24,6 +24,7 @@ function getUwagi(model) {
   if (model.name === 'LDK TN') uwagi.push('Z trzpieniem metalowym');
   if (model.name === 'LDH TZ') uwagi.push('Ekonomiczny');
   if (model.name === 'LDH TN') uwagi.push('Z trzpieniem metalowym');
+  if (model.name === 'LXK 10 H') uwagi.push('Promowany model');
   return uwagi.join(', ');
 }
 
@@ -66,10 +67,10 @@ function App() {
       return;
     }
 
-    const hDEffMm = hDEff;           // mm
-    const tfixMm = adhesiveThickness; // mm
+    const hDEffMm = hDEff;
+    const tfixMm = adhesiveThickness;
+    // const ttol = 0;
 
-    // 3. Filtrowanie modeli
     const filteredModels = models.filter(model =>
       model.categories.includes(substrate) &&
       (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin))
@@ -87,7 +88,6 @@ function App() {
         if (hef === undefined) return null;
 
         const laMin = hef + hDEffMm + tfixMm;
-
         const laAvailable = model.availableLengths.find(la => la >= laMin);
         if (!laAvailable) return null;
 
@@ -102,14 +102,21 @@ function App() {
           uwagi: getUwagi(model),
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => a.laRecommended - b.laRecommended);
+      .filter(Boolean);
 
-    if (recs.length === 0) {
+    // PRIORYTET: LXK 10 H NA POCZĄTKU (jeśli pasuje)
+    const lxkRec = recs.find(r => r.name === 'LXK 10 H');
+    const otherRecs = recs.filter(r => r.name !== 'LXK 10 H');
+
+    const sortedRecs = lxkRec
+      ? [lxkRec, ...otherRecs.sort((a, b) => a.laRecommended - b.laRecommended)]
+      : otherRecs.sort((a, b) => a.laRecommended - b.laRecommended);
+
+    if (sortedRecs.length === 0) {
       setRecommendations([]);
       setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
     } else {
-      setRecommendations(recs);
+      setRecommendations(sortedRecs);
       setErrors({});
     }
     setStep(5);
