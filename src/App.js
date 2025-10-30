@@ -1,146 +1,138 @@
+// src/App.js – ZREKONSTRUOWANY z main.0976d9b8.js (struktura identyczna z Twoim kodem)
 import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel } from '@mui/material';
 import { models } from './data';
-import { Step0, Step1, Step2, StepAdhesive, StepRecessed, Step4 } from './Steps';
+import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
 
 const starfixTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: {
-      main: '#dd0000',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#333333',
-      secondary: '#555555',
-    },
+    primary: { main: '#dd0000' },
+    background: { default: '#f5f5f5', paper: '#ffffff' },
+    text: { primary: '#333333', secondary: '#555555' },
   },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundImage: 'none',
-        },
-      },
-    },
-    MuiTableHead: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#f0f0f0',
-        },
-      },
-    },
+    MuiCssBaseline: { styleOverrides: { body: { backgroundImage: 'none' } } },
+    MuiTableHead: { styleOverrides: { root: { backgroundColor: '#f0f0f0' } } },
   },
 });
+
+function getUwagi(model) {
+  let uwagi = [];
+  if (model.name === 'LDK TZ') uwagi.push('Najkrótszy, uniwersalny');
+  if (model.name === 'LDK TN') uwagi.push('Z trzpieniem metalowym');
+  if (model.name === 'LDH TZ') uwagi.push('Ekonomiczny');
+  if (model.name === 'LDH TN') uwagi.push('Z trzpieniem metalowym');
+  return uwagi.join(', ');
+}
 
 function App() {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
     substrate: 'A',
     insulationType: 'EPS',
-    hD: 12,
-    adhesiveThickness: 1,
-    recessed: false,
+    hD: 120,
+    adhesiveThickness: 10,
+    recessedDepth: 0,
   });
   const [recommendations, setRecommendations] = useState([]);
   const [errors, setErrors] = useState({});
 
   const updateFormData = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: '' }));
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const validateStep = (currentStep) => {
+  const validateStep = currentStep => {
     const newErrors = {};
     if (currentStep === 0 && !formData.substrate) newErrors.substrate = 'Wybierz rodzaj podłoża';
     if (currentStep === 1 && !formData.insulationType) newErrors.insulationType = 'Wybierz typ izolacji';
-    if (currentStep === 2 && (formData.hD < 1 || formData.hD > 40)) newErrors.hD = 'Grubość izolacji musi być między 1 a 40 cm';
-    if (currentStep === 3 && (formData.adhesiveThickness < 1 || formData.adhesiveThickness > 5)) newErrors.adhesiveThickness = 'Grubość warstwy kleju musi być między 1 a 5 cm';
-    if (currentStep === 4 && typeof formData.recessed !== 'boolean') newErrors.recessed = 'Wybierz opcję montażu';
+    if (currentStep === 2 && (formData.hD < 10 || formData.hD > 400)) newErrors.hD = 'Grubość izolacji musi być między 10 a 400 mm';
+    if (currentStep === 3 && (formData.adhesiveThickness < 10 || formData.adhesiveThickness > 50)) newErrors.adhesiveThickness = 'Grubość warstwy kleju musi być między 10 a 50 mm';
+    if (currentStep === 4 && (formData.recessedDepth < 0 || formData.recessedDepth > 50)) newErrors.recessedDepth = 'Głębokość montażu zagłębionego musi być między 0 a 50 mm';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const calculateLa = () => {
     if (!validateStep(4)) return;
+    const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
 
-    const { substrate, insulationType, hD, adhesiveThickness, recessed } = formData;
-    const hDEff = recessed ? hD - 2 : hD;
-    const tfixMm = adhesiveThickness * 10;
-    const hDEffMm = hDEff * 10;
-    const ttol = 10;
+    const hDEff = hD - recessedDepth;
+    if (hDEff < 0) {
+      setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
+      setStep(5);
+      return;
+    }
 
+    const hDEffMm = hDEff;           // mm
+    const tfixMm = adhesiveThickness; // mm
+
+    // 3. Filtrowanie modeli
     const filteredModels = models.filter(model =>
       model.categories.includes(substrate) &&
       (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin))
     );
 
     if (!filteredModels.length) {
-      setRecommendations([]);
+      setErrors({ global: 'Brak modeli dla wybranego podłoża i typu izolacji.' });
       setStep(5);
       return;
     }
 
     const recs = filteredModels
       .map(model => {
-        const hefForSubstrate = typeof model.hef === 'object'
-          ? model.hef[substrate]
-          : model.hef;
+        const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
+        if (hef === undefined) return null;
 
-        if (hefForSubstrate === undefined) {
-          return null;
-        }
+        const laMin = hef + hDEffMm + tfixMm;
 
-        const laMin = hefForSubstrate + hDEffMm + tfixMm + ttol;
         const laAvailable = model.availableLengths.find(la => la >= laMin);
+        if (!laAvailable) return null;
 
-        if (!laAvailable) {
-          return null;
-        }
+        const maxHD = (laAvailable - hef - tfixMm) + recessedDepth;
+        if (maxHD < hD) return null;
 
-        const maxHD = (laAvailable - hefForSubstrate - tfixMm - ttol) / 10;
-
-        return { ...model, laRecommended: laAvailable, maxHD, hef: hefForSubstrate };
+        return {
+          ...model,
+          laRecommended: laAvailable,
+          maxHD: Number(maxHD.toFixed(0)),
+          hef,
+          uwagi: getUwagi(model),
+        };
       })
       .filter(Boolean)
       .sort((a, b) => a.laRecommended - b.laRecommended);
 
-    setRecommendations(recs);
+    if (recs.length === 0) {
+      setRecommendations([]);
+      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
+    } else {
+      setRecommendations(recs);
+      setErrors({});
+    }
     setStep(5);
   };
 
-  const nextStep = () => {
-    if (validateStep(step)) setStep((prev) => prev + 1);
-  };
+  const nextStep = () => { if (validateStep(step)) setStep(prev => prev + 1); };
+  const prevStep = () => setStep(prev => prev - 1);
 
-  const prevStep = () => setStep((prev) => prev - 1);
-
-  const goToStep = (index) => {
+  const goToStep = index => {
     if (index > step) {
       let isValid = true;
-      for (let i = step; i < index; i++) {
-        if (!validateStep(i)) {
-          isValid = false;
-          break;
-        }
-      }
+      for (let i = step; i < index; i++) if (!validateStep(i)) { isValid = false; break; }
       if (isValid) setStep(index);
-    } else {
-      setStep(index);
-    }
+    } else setStep(index);
   };
 
   const handleStartOver = () => {
     setFormData({
       substrate: 'A',
       insulationType: 'EPS',
-      hD: 1,
-      adhesiveThickness: 1,
-      recessed: false,
+      hD: 10,
+      adhesiveThickness: 10,
+      recessedDepth: 0,
     });
     setRecommendations([]);
     setErrors({});
@@ -152,79 +144,40 @@ function App() {
     'Typ izolacji',
     'Grubość izolacji',
     'Grubość warstwy kleju',
-    'Montaż zagłębiony ?',
+    'Głębokość zagłębienia',
     'Rekomendacja dla',
   ];
 
   const stepComponents = [
-    <Step0 substrate={formData.substrate} setSubstrate={(value) => updateFormData('substrate', value)} errors={errors} nextStep={nextStep} />,
-    <Step1 insulationType={formData.insulationType} setInsulationType={(value) => updateFormData('insulationType', value)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <Step2 hD={formData.hD} setHD={(value) => updateFormData('hD', value)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={(value) => updateFormData('adhesiveThickness', value)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepRecessed recessed={formData.recessed} setRecessed={(value) => updateFormData('recessed', value)} errors={errors} calculateLa={calculateLa} prevStep={prevStep} />,
-    <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} />,
+    <Step0 substrate={formData.substrate} setSubstrate={v => updateFormData('substrate', v)} errors={errors} nextStep={nextStep} />,
+    <Step1 insulationType={formData.insulationType} setInsulationType={v => updateFormData('insulationType', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <Step2 hD={formData.hD} setHD={v => updateFormData('hD', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={v => updateFormData('adhesiveThickness', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={v => updateFormData('recessedDepth', v)} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
+    <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} />,
   ];
 
   return (
     <ThemeProvider theme={starfixTheme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <img
-            src={`${process.env.PUBLIC_URL}/logotyp_outline.svg`}
-            alt="Starfix Logo"
-            style={{
-              width: '100%',
-              maxWidth: '250px',
-              height: 'auto'
-            }}
-          />
+          <img src={`${process.env.PUBLIC_URL}/logotyp_outline.svg`} alt="Starfix Logo" style={{ width: '100%', maxWidth: '250px', height: 'auto' }} />
         </Box>
-
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{
-            fontWeight: 300,
-            letterSpacing: '1.5px',
-            my: 3,
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-          }}
-        >
+        <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Konfigurator Łączników ETICS
         </Typography>
-
         <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
           {stepLabels.map((label, index) => (
             <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
-              <StepLabel
-                onClick={() => goToStep(index)}
-                sx={{
-                  cursor: 'pointer',
-                  fontSize: { xs: '0.65rem', sm: '0.875rem' },
-                  '& .MuiStepLabel-label': {
-                    fontSize: { xs: '0.65rem', sm: '0.875rem' },
-                  }
-                }}
-              >
+              <StepLabel onClick={() => goToStep(index)} sx={{ cursor: 'pointer', fontSize: { xs: '0.65rem', sm: '0.875rem' }, '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } } }}>
                 {label}
               </StepLabel>
             </Step>
           ))}
         </MuiStepper>
-
-        <Box sx={{
-          mt: 4,
-          p: { xs: 2, sm: 3 },
-          bgcolor: 'background.paper',
-          color: 'text.primary',
-          borderRadius: 2,
-          boxShadow: '0px 4px 20px rgba(0,0,0,0.05)'
-        }}>
-          <Typography variant="h5" component="h2" gutterBottom align="center">
-            {stepLabels[step]}
-          </Typography>
+        <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
+          <Typography variant="h5" component="h2" gutterBottom align="center">{stepLabels[step]}</Typography>
           <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
         </Box>
       </Container>
