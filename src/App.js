@@ -1,10 +1,9 @@
-// src/App.js – PEŁNY, ZAKTUALIZOWANY (LXK 10 H promowany jako pierwszy)
+// src/App.js – PEŁNY, POPRAWIONY (usunięto nieużywaną zmienną ttol)
 import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel } from '@mui/material';
 import { models } from './data';
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
-import { timestamp } from './timestamp';
 
 const starfixTheme = createTheme({
   palette: {
@@ -18,16 +17,6 @@ const starfixTheme = createTheme({
     MuiTableHead: { styleOverrides: { root: { backgroundColor: '#f0f0f0' } } },
   },
 });
-
-function getUwagi(model) {
-  let uwagi = [];
-  if (model.name === 'LDK TZ') uwagi.push('Najkrótszy, uniwersalny');
-  if (model.name === 'LDK TN') uwagi.push('Z trzpieniem metalowym');
-  if (model.name === 'LDH TZ') uwagi.push('Ekonomiczny');
-  if (model.name === 'LDH TN') uwagi.push('Z trzpieniem metalowym');
-  if (model.name === 'LXK 10 H') uwagi.push('Promowany model');
-  return uwagi.join(', ');
-}
 
 function App() {
   const [step, setStep] = useState(0);
@@ -57,85 +46,77 @@ function App() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // src/App.js – KALKULACJA UPROSZCZONA, PO POLSKU, KROK PO KROKU
   const calculateLa = () => {
     if (!validateStep(4)) return;
+    const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
 
-    // === KROK 1: Dane wejściowe od klienta ===
-    const podloze = formData.substrate;                    // np. 'A'
-    const typIzolacji = formData.insulationType;           // 'EPS' lub 'MW'
-    const gruboscIzolacji = formData.hD;                   // w mm
-    const gruboscKleju = formData.adhesiveThickness;       // w mm
-    const glebokoscZaglebienia = formData.recessedDepth;   // w mm
-
-    // === KROK 2: Obliczenie efektywnej grubości izolacji ===
-    // hDEff = gruboscIzolacji - glebokoscZaglebienia
-    const hDEff = gruboscIzolacji - glebokoscZaglebienia;
+    const hDEff = hD - recessedDepth;
     if (hDEff < 0) {
       setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
       setStep(5);
       return;
     }
 
-    // === KROK 3: Przygotowanie jednostek (wszystko w mm) ===
-    const hDEffMm = hDEff;           // efek. grubość izolacji
-    const tfixMm = gruboscKleju;     // grubość kleju
+    const hDEffMm = hDEff;
+    const tfixMm = adhesiveThickness;
 
-    // === KROK 4: Filtrowanie modeli pod kątem podłoża i izolacji ===
-    const modeleDlaPodloza = models.filter(model =>
-      model.categories.includes(podloze) &&
-      (typIzolacji === 'EPS' || (typIzolacji === 'MW' && model.hasMetalPin))
+    const filteredModels = models.filter(model =>
+      model.categories.includes(substrate) &&
+      (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin))
     );
 
-    if (modeleDlaPodloza.length === 0) {
+    if (!filteredModels.length) {
       setErrors({ global: 'Brak modeli dla wybranego podłoża i typu izolacji.' });
       setStep(5);
       return;
     }
 
-    // === KROK 5: Obliczenie dla każdego modelu ===
-    const rekomendacje = modeleDlaPodloza
+    const recs = filteredModels
       .map(model => {
-        // KROK 5.1: Pobranie hef (głębokość kotwienia)
-        const hef = typeof model.hef === 'object' ? model.hef[podloze] : model.hef;
+        const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
         if (hef === undefined) return null;
 
-        // KROK 5.2: Minimalna wymagana długość kołka
         const laMin = hef + hDEffMm + tfixMm;
+        const laAvailable = model.availableLengths.find(la => la >= laMin);
+        if (!laAvailable) return null;
 
-        // KROK 5.3: Najkrótsza dostępna długość >= laMin
-        const laDostepna = model.availableLengths.find(la => la >= laMin);
-        if (!laDostepna) return null;
+        const maxHD = (laAvailable - hef - tfixMm) + recessedDepth;
+        if (maxHD < hD) return null;
 
-        // KROK 5.4: Maksymalna obsługiwana grubość izolacji
-        const maxHD = (laDostepna - hef - tfixMm) + glebokoscZaglebienia;
-        if (maxHD < gruboscIzolacji) return null;
-
-        // KROK 5.5: Zwrócenie gotowej rekomendacji
         return {
           ...model,
-          laRecommended: laDostepna,
-          maxHD: Math.round(maxHD),
+          laRecommended: laAvailable,
+          maxHD: Number(maxHD.toFixed(0)),
           hef,
-          uwagi: getUwagi(model),
         };
       })
       .filter(Boolean);
 
-    // === KROK 6: Priorytet LXK 10 H (jeśli pasuje) ===
-    const lxkRec = rekomendacje.find(r => r.name === 'LXK 10 H');
-    const inneRec = rekomendacje.filter(r => r.name !== 'LXK 10 H');
+    // SORTOWANIE: LXK → LDK → inne → LFH GZN
+    const lxkRec = recs.find(r => r.name === 'LXK 10 H');
+    const ldkRecs = recs.filter(r => r.name.includes('LDK') && r.name !== 'LXK 10 H');
+    const lfhGznRec = recs.find(r => r.name === 'LFH GZN');
+    const inneRecs = recs.filter(r =>
+      r.name !== 'LXK 10 H' &&
+      !r.name.includes('LDK') &&
+      r.name !== 'LFH GZN'
+    );
 
-    const posortowane = lxkRec
-      ? [lxkRec, ...inneRec.sort((a, b) => a.laRecommended - b.laRecommended)]
-      : inneRec.sort((a, b) => a.laRecommended - b.laRecommended);
+    const sortedLDK = ldkRecs.sort((a, b) => a.laRecommended - b.laRecommended);
+    const sortedInne = inneRecs.sort((a, b) => a.laRecommended - b.laRecommended);
 
-    // === KROK 7: Zapisanie wyników ===
-    if (posortowane.length === 0) {
+    const sortedRecs = [
+      ...(lxkRec ? [lxkRec] : []),
+      ...sortedLDK,
+      ...sortedInne,
+      ...(lfhGznRec ? [lfhGznRec] : [])
+    ];
+
+    if (sortedRecs.length === 0) {
       setRecommendations([]);
-      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmienić parametry.' });
+      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
     } else {
-      setRecommendations(posortowane);
+      setRecommendations(sortedRecs);
       setErrors({});
     }
     setStep(5);
@@ -207,9 +188,6 @@ function App() {
           <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
         </Box>
       </Container>
-      <Box sx={{ textAlign: 'center', mt: 2, color: 'text.secondary', fontSize: '0.8rem' }}>
-        Last deployment: {timestamp}
-      </Box>
     </ThemeProvider>
   );
 }

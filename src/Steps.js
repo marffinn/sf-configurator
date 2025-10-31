@@ -1,11 +1,13 @@
-// src/Steps.js – PEŁNY, ZAKTUALIZOWANY (kolumna hef tymczasowo zakomentowana)
+// src/Steps.js – PEŁNY, ZAKTUALIZOWANY (dodano kolumnę z PDF)
 import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
   Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  Link as MuiLink
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { substrates, insulationTypes } from './data';
 
 export const Step0 = ({ substrate, setSubstrate, errors, nextStep }) => {
@@ -31,8 +33,9 @@ export const Step1 = ({ insulationType, setInsulationType, errors, nextStep, pre
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControl fullWidth error={!!errors.insulationType}>
-        <InputLabel id="insulation-type-select-label">Typ izolacji</InputLabel>
-        <Select labelId="insulation-type-select-label" value={insulationType} label="Typ izolacji" onChange={handleChange}>
+        <Typography variant="subtitle1">Typ izolacji</Typography>
+        <Select value={insulationType} onChange={handleChange} displayEmpty>
+          <MenuItem value="" disabled>Wybierz typ izolacji</MenuItem>
           {insulationTypes.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
         </Select>
         {errors.insulationType && <Typography color="error" variant="caption">{errors.insulationType}</Typography>}
@@ -107,6 +110,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
   const substrateLabel = substrates.find(s => s.value === substrate)?.label;
   const insulationTypeLabel = insulationTypes.find(i => i.value === insulationType)?.label;
   const handleStartOver = () => setStep(0);
+
   const summaryData = [
     { name: 'Podłoże', value: substrateLabel },
     { name: 'Typ izolacji', value: insulationTypeLabel },
@@ -142,14 +146,11 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
                   Nazwa
                 </TableCell>
-                {/* 
-                  KOLUMNA HEF – TYMZASOWO ZAKOMENTOWANA (nie będzie wyświetlana)
-                  <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                    hef (mm)
-                  </TableCell>
-                */}
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
                   Materiał
+                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                  Dokumentacja
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -159,14 +160,29 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
                   <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
                     {rec.name} {rec.laRecommended} mm
                   </TableCell>
-                  {/* 
-                    KOMÓRKA HEF – TYMZASOWO ZAKOMENTOWANA
-                    <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                      {rec.hef}
-                    </TableCell>
-                  */}
                   <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
                     {rec.material}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>
+                    {rec.pdfLink ? (
+                      <MuiLink
+                        href={rec.pdfLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          color: 'primary.main',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          textDecoration: 'none',
+                          '&:hover': { textDecoration: 'underline' }
+                        }}
+                      >
+                        <PictureAsPdfIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                        <span sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>PDF</span>
+                      </MuiLink>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">—</Typography>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -178,6 +194,7 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           Nie znaleziono odpowiedniego produktu. Prosimy o kontakt telefoniczny z naszym działem technicznym w celu uzyskania pomocy.
         </Typography>
       )}
+
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2, flexWrap: 'wrap' }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
         <Button variant="outlined" onClick={handleStartOver} sx={{ width: { xs: '100%', sm: 'auto' } }}>Zacznij od nowa</Button>
