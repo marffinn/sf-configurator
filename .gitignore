@@ -25,3 +25,6 @@ yarn-error.log*
 # Ignore asset source files
 /public/assets
 *.blend
+
+# Timestamp file
+src/timestamp.js

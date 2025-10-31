@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel } from '@mui/material';
 import { models } from './data';
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
+import { timestamp } from './timestamp';
 
 const starfixTheme = createTheme({
   palette: {
@@ -206,6 +207,9 @@ function App() {
           <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
         </Box>
       </Container>
+      <Box sx={{ textAlign: 'center', mt: 2, color: 'text.secondary', fontSize: '0.8rem' }}>
+        Last deployment: {timestamp}
+      </Box>
     </ThemeProvider>
   );
 }
