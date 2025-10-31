@@ -1,4 +1,4 @@
-// src/Steps.js – ZAKTUALIZOWANY (usunięto kolumnę "Uwagi")
+// src/Steps.js – PEŁNY, ZAKTUALIZOWANY (kolumna hef tymczasowo zakomentowana)
 import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
@@ -139,19 +139,35 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>Nazwa</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>hef (mm)</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>Materiał</TableCell>
-                {/* KOLUMNA "UWAGI" USUNIĘTA */}
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                  Nazwa
+                </TableCell>
+                {/* 
+                  KOLUMNA HEF – TYMZASOWO ZAKOMENTOWANA (nie będzie wyświetlana)
+                  <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                    hef (mm)
+                  </TableCell>
+                */}
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
+                  Materiał
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {recommendations.map(rec => (
                 <TableRow key={rec.name}>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.name} {rec.laRecommended} mm</TableCell>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>{rec.hef}</TableCell>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>{rec.material}</TableCell>
-                  {/* KOMÓRKA "UWAGI" USUNIĘTA */}
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                    {rec.name} {rec.laRecommended} mm
+                  </TableCell>
+                  {/* 
+                    KOMÓRKA HEF – TYMZASOWO ZAKOMENTOWANA
+                    <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                      {rec.hef}
+                    </TableCell>
+                  */}
+                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
+                    {rec.material}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

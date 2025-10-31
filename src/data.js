@@ -1,63 +1,39 @@
-// src/data.js – ZAKTUALIZOWANY (dodano LXK 10 H)
+// src/data.js – ZAKTUALIZOWANY (poprawiono trzpienie + LXK)
 export const models = [
   {
     name: 'LDK TZ',
-    hef: {
-      'A': 25,
-      'B': 60,
-      'C': 80,
-      'D': 80,
-      'E': 80
-    },
+    hef: { 'A': 25, 'B': 60, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420],
     material: 'polipropylen',
-    hasMetalPin: false,
+    hasMetalPin: true,  // TZ = metalowy trzpień z główką zalaną plastikiem
     maxFixtureThickness: [30, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 280, 320, 360]
   },
   {
     name: 'LDK TN',
-    hef: {
-      'A': 25,
-      'B': 60,
-      'C': 80,
-      'D': 80,
-      'E': 80
-    },
+    hef: { 'A': 25, 'B': 60, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
-    hasMetalPin: true,
+    hasMetalPin: true,  // TN = metalowy trzpień (bez główki zalanej)
     maxFixtureThickness: [40, 80, 100, 120, 140, 160, 180, 200, 220, 240]
   },
   {
     name: 'LDH TZ',
-    hef: {
-      'A': 25,
-      'B': 80,
-      'C': 80,
-      'D': 80,
-      'E': 80
-    },
+    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['C'],
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
-    hasMetalPin: false,
+    hasMetalPin: true,  // TZ = metalowy z główką zalaną
     maxFixtureThickness: [40, 60, 80, 100, 120]
   },
   {
     name: 'LDH TN',
-    hef: {
-      'A': 25,
-      'B': 80,
-      'C': 80,
-      'D': 80,
-      'E': 80
-    },
+    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['C'],
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
-    hasMetalPin: true,
+    hasMetalPin: true,  // TN = metalowy bez główki
     maxFixtureThickness: [40, 60, 80, 100, 120]
   },
   {
@@ -66,7 +42,7 @@ export const models = [
     categories: ['A', 'B', 'C'],
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
-    hasMetalPin: true,
+    hasMetalPin: true,  // TZ = metalowy z główką zalaną
     maxFixtureThickness: [60, 80, 100, 120, 140, 160, 180, 200]
   },
   {
@@ -75,7 +51,7 @@ export const models = [
     categories: ['A', 'B', 'C'],
     availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
-    hasMetalPin: true,
+    hasMetalPin: true,  // TN = metalowy bez główki
     maxFixtureThickness: [100, 120, 140, 160, 180, 200]
   },
   {
@@ -84,7 +60,7 @@ export const models = [
     categories: ['A', 'B', 'C'],
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
-    hasMetalPin: true,
+    hasMetalPin: false,  // GZN = trzpień tworzywowy
     maxFixtureThickness: [40, 60, 80, 100, 120, 140, 160, 180, 200]
   },
   {
@@ -93,18 +69,17 @@ export const models = [
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
-    hasMetalPin: false,
+    hasMetalPin: false,  // GZN = trzpień tworzywowy
     maxFixtureThickness: [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240]
   },
-  // NOWY MODEL: LXK 10 H
   {
     name: 'LXK 10 H',
-    hef: 60, // Głębokość kotwienia = 60 mm (stała)
-    categories: ['A', 'B', 'C', 'D', 'E'], // Uniwersalne (dostosuj jeśli potrzeba)
+    hef: 60,
+    categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [160, 180, 200, 220, 240, 260],
-    material: 'polipropylen', // Założone na podstawie podobnych modeli
-    hasMetalPin: true, // Wkręt 6.0 mm → metalowy trzpień
-    maxFixtureThickness: [100, 120, 140, 160, 180, 200] // Z tabeli
+    material: 'polipropylen',
+    hasMetalPin: true,  // wkręt 6.0 mm = metalowy
+    maxFixtureThickness: [100, 120, 140, 160, 180, 200]
   }
 ];
 

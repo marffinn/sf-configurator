@@ -56,67 +56,85 @@ function App() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // src/App.js – KALKULACJA UPROSZCZONA, PO POLSKU, KROK PO KROKU
   const calculateLa = () => {
     if (!validateStep(4)) return;
-    const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
 
-    const hDEff = hD - recessedDepth;
+    // === KROK 1: Dane wejściowe od klienta ===
+    const podloze = formData.substrate;                    // np. 'A'
+    const typIzolacji = formData.insulationType;           // 'EPS' lub 'MW'
+    const gruboscIzolacji = formData.hD;                   // w mm
+    const gruboscKleju = formData.adhesiveThickness;       // w mm
+    const glebokoscZaglebienia = formData.recessedDepth;   // w mm
+
+    // === KROK 2: Obliczenie efektywnej grubości izolacji ===
+    // hDEff = gruboscIzolacji - glebokoscZaglebienia
+    const hDEff = gruboscIzolacji - glebokoscZaglebienia;
     if (hDEff < 0) {
       setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
       setStep(5);
       return;
     }
 
-    const hDEffMm = hDEff;
-    const tfixMm = adhesiveThickness;
-    // const ttol = 0;
+    // === KROK 3: Przygotowanie jednostek (wszystko w mm) ===
+    const hDEffMm = hDEff;           // efek. grubość izolacji
+    const tfixMm = gruboscKleju;     // grubość kleju
 
-    const filteredModels = models.filter(model =>
-      model.categories.includes(substrate) &&
-      (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin))
+    // === KROK 4: Filtrowanie modeli pod kątem podłoża i izolacji ===
+    const modeleDlaPodloza = models.filter(model =>
+      model.categories.includes(podloze) &&
+      (typIzolacji === 'EPS' || (typIzolacji === 'MW' && model.hasMetalPin))
     );
 
-    if (!filteredModels.length) {
+    if (modeleDlaPodloza.length === 0) {
       setErrors({ global: 'Brak modeli dla wybranego podłoża i typu izolacji.' });
       setStep(5);
       return;
     }
 
-    const recs = filteredModels
+    // === KROK 5: Obliczenie dla każdego modelu ===
+    const rekomendacje = modeleDlaPodloza
       .map(model => {
-        const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
+        // KROK 5.1: Pobranie hef (głębokość kotwienia)
+        const hef = typeof model.hef === 'object' ? model.hef[podloze] : model.hef;
         if (hef === undefined) return null;
 
+        // KROK 5.2: Minimalna wymagana długość kołka
         const laMin = hef + hDEffMm + tfixMm;
-        const laAvailable = model.availableLengths.find(la => la >= laMin);
-        if (!laAvailable) return null;
 
-        const maxHD = (laAvailable - hef - tfixMm) + recessedDepth;
-        if (maxHD < hD) return null;
+        // KROK 5.3: Najkrótsza dostępna długość >= laMin
+        const laDostepna = model.availableLengths.find(la => la >= laMin);
+        if (!laDostepna) return null;
 
+        // KROK 5.4: Maksymalna obsługiwana grubość izolacji
+        const maxHD = (laDostepna - hef - tfixMm) + glebokoscZaglebienia;
+        if (maxHD < gruboscIzolacji) return null;
+
+        // KROK 5.5: Zwrócenie gotowej rekomendacji
         return {
           ...model,
-          laRecommended: laAvailable,
-          maxHD: Number(maxHD.toFixed(0)),
+          laRecommended: laDostepna,
+          maxHD: Math.round(maxHD),
           hef,
           uwagi: getUwagi(model),
         };
       })
       .filter(Boolean);
 
-    // PRIORYTET: LXK 10 H NA POCZĄTKU (jeśli pasuje)
-    const lxkRec = recs.find(r => r.name === 'LXK 10 H');
-    const otherRecs = recs.filter(r => r.name !== 'LXK 10 H');
+    // === KROK 6: Priorytet LXK 10 H (jeśli pasuje) ===
+    const lxkRec = rekomendacje.find(r => r.name === 'LXK 10 H');
+    const inneRec = rekomendacje.filter(r => r.name !== 'LXK 10 H');
 
-    const sortedRecs = lxkRec
-      ? [lxkRec, ...otherRecs.sort((a, b) => a.laRecommended - b.laRecommended)]
-      : otherRecs.sort((a, b) => a.laRecommended - b.laRecommended);
+    const posortowane = lxkRec
+      ? [lxkRec, ...inneRec.sort((a, b) => a.laRecommended - b.laRecommended)]
+      : inneRec.sort((a, b) => a.laRecommended - b.laRecommended);
 
-    if (sortedRecs.length === 0) {
+    // === KROK 7: Zapisanie wyników ===
+    if (posortowane.length === 0) {
       setRecommendations([]);
-      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
+      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmienić parametry.' });
     } else {
-      setRecommendations(sortedRecs);
+      setRecommendations(posortowane);
       setErrors({});
     }
     setStep(5);
