@@ -20,9 +20,8 @@
     "test": "craco test",
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.js",
-    "timestamp": "node scripts/timestamp.js",
     "predeploy": "npm run build",
-    "deploy": "npm run timestamp && gh-pages -d build"
+    "deploy": "npm run gh-pages -d build"
   },
   "browserslist": {
     "production": [
