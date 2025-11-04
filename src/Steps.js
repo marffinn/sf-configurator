@@ -1,23 +1,31 @@
+
 // src/Steps.js – PEŁNY, ZAKTUALIZOWANY (dodano kolumnę z PDF)
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
   Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Link as MuiLink
+  Link as MuiLink, TextField, Alert
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import EmailIcon from '@mui/icons-material/Email';
+import SendIcon from '@mui/icons-material/Send';
 import { substrates, insulationTypes } from './data';
 
-export const Step0 = ({ substrate, setSubstrate, errors, nextStep }) => {
-  const handleChange = e => setSubstrate(e.target.value);
+export function Step0(props) {
+  const { substrate, setSubstrate, errors, nextStep } = props;
+  const handleChange = function(e) {
+    return setSubstrate(e.target.value);
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControl fullWidth error={!!errors.substrate}>
         <InputLabel id="substrate-select-label">Podłoże</InputLabel>
         <Select labelId="substrate-select-label" value={substrate} label="Podłoże" onChange={handleChange}>
-          {substrates.map(s => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
+          {substrates.map(function(s) {
+            return <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>;
+          })}
         </Select>
         {errors.substrate && <Typography color="error" variant="caption">{errors.substrate}</Typography>}
       </FormControl>
@@ -26,17 +34,22 @@ export const Step0 = ({ substrate, setSubstrate, errors, nextStep }) => {
       </Box>
     </Box>
   );
-};
+}
 
-export const Step1 = ({ insulationType, setInsulationType, errors, nextStep, prevStep }) => {
-  const handleChange = e => setInsulationType(e.target.value);
+export function Step1(props) {
+  const { insulationType, setInsulationType, errors, nextStep, prevStep } = props;
+  const handleChange = function(e) {
+    return setInsulationType(e.target.value);
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControl fullWidth error={!!errors.insulationType}>
         <Typography variant="subtitle1">Typ izolacji</Typography>
         <Select value={insulationType} onChange={handleChange} displayEmpty>
           <MenuItem value="" disabled>Wybierz typ izolacji</MenuItem>
-          {insulationTypes.map(t => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
+          {insulationTypes.map(function(t) {
+            return <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>;
+          })}
         </Select>
         {errors.insulationType && <Typography color="error" variant="caption">{errors.insulationType}</Typography>}
       </FormControl>
@@ -46,10 +59,13 @@ export const Step1 = ({ insulationType, setInsulationType, errors, nextStep, pre
       </Box>
     </Box>
   );
-};
+}
 
-export const Step2 = ({ hD, setHD, errors, nextStep, prevStep }) => {
-  const handleChange = (_, v) => setHD(v);
+export function Step2(props) {
+  const { hD, setHD, errors, nextStep, prevStep } = props;
+  const handleChange = function(event, value) {
+    return setHD(value);
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość izolacji: {hD} mm</Typography>
@@ -61,10 +77,13 @@ export const Step2 = ({ hD, setHD, errors, nextStep, prevStep }) => {
       </Box>
     </Box>
   );
-};
+}
 
-export const StepAdhesive = ({ adhesiveThickness, setAdhesiveThickness, errors, nextStep, prevStep }) => {
-  const handleChange = (_, v) => setAdhesiveThickness(v);
+export function StepAdhesive(props) {
+  const { adhesiveThickness, setAdhesiveThickness, errors, nextStep, prevStep } = props;
+  const handleChange = function(event, value) {
+    return setAdhesiveThickness(value);
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness} mm</Typography>
@@ -76,10 +95,13 @@ export const StepAdhesive = ({ adhesiveThickness, setAdhesiveThickness, errors, 
       </Box>
     </Box>
   );
-};
+}
 
-export const StepRecessedDepth = ({ recessedDepth, setRecessedDepth, errors, nextStep, prevStep }) => {
-  const handleChange = (_, v) => setRecessedDepth(v);
+export function StepRecessedDepth(props) {
+  const { recessedDepth, setRecessedDepth, errors, nextStep, prevStep } = props;
+  const handleChange = function(event, value) {
+    return setRecessedDepth(value);
+  };
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>
@@ -104,12 +126,81 @@ export const StepRecessedDepth = ({ recessedDepth, setRecessedDepth, errors, nex
       </Box>
     </Box>
   );
-};
+}
 
-export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessedDepth, errors }) => {
-  const substrateLabel = substrates.find(s => s.value === substrate)?.label;
-  const insulationTypeLabel = insulationTypes.find(i => i.value === insulationType)?.label;
-  const handleStartOver = () => setStep(0);
+export function Step4(props) {
+  const { recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessedDepth, errors } = props;
+  const [clientEmail, setClientEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  const substrateLabel = substrates.find(function(s) { return s.value === substrate; })?.label;
+  const insulationTypeLabel = insulationTypes.find(function(i) { return i.value === insulationType; })?.label;
+  const handleStartOver = function() { return setStep(0); };
+
+  const validateEmail = function(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = function(event) {
+    const email = event.target.value;
+    setClientEmail(email);
+    if (email && !validateEmail(email)) {
+      setEmailError('Proszę wpisać prawidłowy adres email');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  const handleSendRecommendations = function() {
+    if (!clientEmail) {
+      setEmailError('Proszę wpisać adres email');
+      return;
+    }
+
+    if (!validateEmail(clientEmail)) {
+      setEmailError('Proszę wpisać prawidłowy adres email');
+      return;
+    }
+
+    setIsSending(true);
+
+    const recommendationsSummary = {
+      substrate: substrateLabel,
+      insulationType: insulationTypeLabel,
+      insulationThickness: hD,
+      adhesiveThickness: adhesiveThickness,
+      recessedDepth: recessedDepth,
+      recommendations: recommendations.map(function(rec) {
+        return {
+          name: rec.name,
+          length: rec.laRecommended,
+          material: rec.material,
+          hef: rec.hef,
+        };
+      }),
+      clientEmail: clientEmail,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Simulate sending email (in production, this would call a backend API)
+    setTimeout(function() {
+      console.log('Sending recommendations to:', clientEmail);
+      console.log('Recommendations data:', recommendationsSummary);
+      
+      // In production, replace this with actual API call:
+      // fetch('/api/send-recommendations', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(recommendationsSummary)
+      // })
+      
+      setIsSending(false);
+      setEmailSent(true);
+    }, 1500);
+  };
 
   const summaryData = [
     { name: 'Podłoże', value: substrateLabel },
@@ -124,12 +215,14 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
       <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto', backgroundColor: 'grey.100', boxShadow: 'none' }}>
         <Table size="small">
           <TableBody>
-            {summaryData.map(row => (
-              <TableRow key={row.name}>
-                <TableCell component="th" scope="row" sx={{ fontWeight: 'normal', color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>{row.name}</TableCell>
-                <TableCell align="right" sx={{ color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>{row.value}</TableCell>
-              </TableRow>
-            ))}
+            {summaryData.map(function(row) {
+              return (
+                <TableRow key={row.name}>
+                  <TableCell component="th" scope="row" sx={{ fontWeight: 'normal', color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>{row.name}</TableCell>
+                  <TableCell align="right" sx={{ color: 'grey.700', fontSize: { xs: '0.65rem', sm: '0.875rem' }, py: 0.5 }}>{row.value}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -139,56 +232,100 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
           {errors.global}
         </Typography>
       ) : recommendations.length > 0 ? (
-        <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto' }}>
-          <Table stickyHeader size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                  Nazwa
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
-                  Materiał
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                  Dokumentacja
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {recommendations.map(rec => (
-                <TableRow key={rec.name}>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
-                    {rec.name} {rec.laRecommended} mm
+        <Box>
+          <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto', mb: 3 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                    Nazwa
                   </TableCell>
-                  <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
-                    {rec.material}
+                  <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
+                    Materiał
                   </TableCell>
-                  <TableCell sx={{ textAlign: 'center' }}>
-                    {rec.pdfLink ? (
-                      <MuiLink
-                        href={rec.pdfLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          color: 'primary.main',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          textDecoration: 'none',
-                          '&:hover': { textDecoration: 'underline' }
-                        }}
-                      >
-                        <PictureAsPdfIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                        <span sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>PDF</span>
-                      </MuiLink>
-                    ) : (
-                      <Typography variant="caption" color="text.secondary">—</Typography>
-                    )}
+                  <TableCell sx={{ fontWeight: 'bold', textAlign: 'center', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                    Dokumentacja
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {recommendations.map(function(rec) {
+                  return (
+                    <TableRow key={rec.name}>
+                      <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
+                        {rec.name} {rec.laRecommended} mm
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' }, display: { xs: 'none', md: 'table-cell' } }}>
+                        {rec.material}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        {rec.pdfLink ? (
+                          <MuiLink
+                            href={rec.pdfLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              color: 'primary.main',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              textDecoration: 'none',
+                              '&:hover': { textDecoration: 'underline' }
+                            }}
+                          >
+                            <PictureAsPdfIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                            <span sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>PDF</span>
+                          </MuiLink>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">—</Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {emailSent ? (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              ✓ Rekomendacje zostały wysłane na adres {clientEmail}. Sprawdź swoją skrzynkę odbiorczą!
+            </Alert>
+          ) : (
+            <Paper sx={{ p: 3, mb: 3, backgroundColor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <EmailIcon sx={{ mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Wyślij rekomendacje na email
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                Wpisz swój adres email, aby otrzymać rekomendacje. Wyślemy je również do naszego zespołu technicznego.
+              </Typography>
+              <TextField
+                fullWidth
+                label="Twój adres email"
+                type="email"
+                placeholder="przykład@email.com"
+                value={clientEmail}
+                onChange={handleEmailChange}
+                error={!!emailError}
+                helperText={emailError}
+                disabled={isSending}
+                sx={{ mb: 2 }}
+              />
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<SendIcon />}
+                onClick={handleSendRecommendations}
+                disabled={isSending || !clientEmail || !!emailError}
+                sx={{ mb: 2 }}
+              >
+                {isSending ? 'Wysyłanie...' : 'Wyślij rekomendacje'}
+              </Button>
+            </Paper>
+          )}
+        </Box>
       ) : (
         <Typography variant="h6" align="center" sx={{ my: 4, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           Nie znaleziono odpowiedniego produktu. Prosimy o kontakt telefoniczny z naszym działem technicznym w celu uzyskania pomocy.
@@ -201,4 +338,4 @@ export const Step4 = ({ recommendations, prevStep, setStep, substrate, insulatio
       </Box>
     </Box>
   );
-};
+}
