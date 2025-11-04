@@ -12,7 +12,8 @@
     "bootstrap": "^5.3.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "emailjs-com": "^3.2.0"
   },
   "scripts": {
     "start": "cross-env HOST=0.0.0.0 NODE_OPTIONS=--openssl-legacy-provider craco start --port 8080",
@@ -21,7 +22,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.js",
     "predeploy": "npm run build",
-    "deploy": "npm run gh-pages -d build"
+    "deploy": "gh-pages -d build"
   },
   "browserslist": {
     "production": [

@@ -11,6 +11,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import EmailIcon from '@mui/icons-material/Email';
 import SendIcon from '@mui/icons-material/Send';
+import emailjs from 'emailjs-com';
 import { substrates, insulationTypes } from './data';
 
 export function Step0(props) {
@@ -154,7 +155,7 @@ export function Step4(props) {
     }
   };
 
-  const handleSendRecommendations = function() {
+  const handleSendRecommendations = async function() {
     if (!clientEmail) {
       setEmailError('Proszę wpisać adres email');
       return;
@@ -185,21 +186,47 @@ export function Step4(props) {
       timestamp: new Date().toISOString(),
     };
 
-    // Simulate sending email (in production, this would call a backend API)
-    setTimeout(function() {
-      console.log('Sending recommendations to:', clientEmail);
-      console.log('Recommendations data:', recommendationsSummary);
-      
-      // In production, replace this with actual API call:
-      // fetch('/api/send-recommendations', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(recommendationsSummary)
-      // })
-      
-      setIsSending(false);
+    try {
+      const templateParams = {
+        client_email: clientEmail,
+        substrate: recommendationsSummary.substrate,
+        insulationType: recommendationsSummary.insulationType,
+        insulationThickness: recommendationsSummary.insulationThickness,
+        adhesiveThickness: recommendationsSummary.adhesiveThickness,
+        recessedDepth: recommendationsSummary.recessedDepth,
+        recommendations_html: `
+          <table border="1" style="border-collapse: collapse; width: 100%;">
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Długość (mm)</th>
+                <th>Materiał</th>
+                <th>Hef (mm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recommendationsSummary.recommendations.map(rec => `
+                <tr>
+                  <td>${rec.name}</td>
+                  <td>${rec.length}</td>
+                  <td>${rec.material}</td>
+                  <td>${rec.hef}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `,
+        timestamp: recommendationsSummary.timestamp,
+      };
+
+      await emailjs.send('service_162dpuc', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_');
       setEmailSent(true);
-    }, 1500);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setEmailError('Wystąpił błąd podczas wysyłania rekomendacji.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const summaryData = [
