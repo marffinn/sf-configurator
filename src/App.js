@@ -1,4 +1,4 @@
-// src/App.js – PEŁNY, POPRAWIONY
+// src/App.js – PEŁNY, POPRAWIONY Z postMessage DO WORDPRESSA
 import React, { useState } from 'react';
 import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -125,107 +125,103 @@ function App() {
       insulationType: insulationTypeLabel,
       insulationThickness: formData.hD,
       adhesiveThickness: formData.adhesiveThickness,
-      recessedDepth: formData.recessedDepth === 0 ? 'Brak (montaż na płasko)' : `${formData.recessedDepth} mm`,
-      recommendations_html: recommendationsHtml,
-      timestamp: new Date().toISOString()
+      recessedDepth: formData.recessedDepth === 0 ? 'Brak' : `${formData.recessedDepth} mm`,
+      recommendations_html: recommendationsHtml
     };
-
-    console.log("Sending email with params:", templateParams);
 
     emailjs.send('service_162dpuc', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_')
       .then((response) => {
-         console.log('SUCCESS!', response.status, response.text);
-      }, (err) => {
-         console.log('FAILED...', err);
+        console.log('Email wysłany!', response.status, response.text);
+      })
+      .catch((err) => {
+        console.error('Błąd EmailJS:', err);
       });
   };
 
-  const calculateLa = function () {
+  const calculateLa = () => {
     if (!validateStep(4)) return;
-    const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
 
+    const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
     const hDEff = hD - recessedDepth;
     if (hDEff < 0) {
-      setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
+      setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji' });
       setStep(5);
       return;
     }
 
-    const hDEffMm = hDEff;
-    const tfixMm = adhesiveThickness;
+    const filteredModels = models.filter(m =>
+      m.categories.includes(substrate) &&
+      (insulationType === 'EPS' || (insulationType === 'MW' && m.hasMetalPin))
+    );
 
-    const filteredModels = models.filter(function (model) {
-      return model.categories.includes(substrate) &&
-        (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin));
-    });
+    const recs = filteredModels.map(m => {
+      const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
+      const laMin = hef + hDEff + adhesiveThickness;
+      const laAvailable = m.availableLengths.find(l => l >= laMin);
+      if (!laAvailable) return null;
+      const maxHD = (laAvailable - hef - adhesiveThickness) + recessedDepth;
+      if (maxHD < hD) return null;
+      return { ...m, laRecommended: laAvailable, hef };
+    }).filter(Boolean);
 
-    if (!filteredModels.length) {
-      setErrors({ global: 'Brak modeli dla wybranego podłoża i typu izolacji.' });
-      setStep(5);
-      return;
+    const lxk = recs.find(r => r.name === 'LXK 10 H');
+    const ldk = recs.filter(r => r.name.includes('LDK') && r.name !== 'LXK 10 H').sort((a, b) => a.laRecommended - b.laRecommended);
+    const others = recs.filter(r => !r.name.includes('LDK') && r.name !== 'LXK 10 H' && r.name !== 'LFH GZN').sort((a, b) => a.laRecommended - b.laRecommended);
+    const lfhGzn = recs.find(r => r.name === 'LFH GZN');
+
+    const sortedRecommendations = [...(lxk ? [lxk] : []), ...ldk, ...others, ...(lfhGzn ? [lfhGzn] : [])];
+    setRecommendations(sortedRecommendations);
+
+    if (sortedRecommendations.length > 0) {
+      sendEmail(sortedRecommendations);
+
+      // === WYSYŁANIE STATYSTYK DO WORDPRESSA (tylko w iframe) ===
+      const statsPayload = {
+        substrate: formData.substrate,
+        insulation_type: formData.insulationType,
+        hD: formData.hD,
+        adhesive_thickness: formData.adhesiveThickness,
+        recessed_depth: formData.recessedDepth,
+        recommendations: sortedRecommendations.map(r => ({
+          name: r.name,
+          la: r.laRecommended
+        })),
+        email: email || null
+      };
+
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'SF_STATS',
+          payload: statsPayload
+        }, '*');
+      }
+      // === KONIEC ===
     }
 
-    const recs = filteredModels
-      .map(function (model) {
-        const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
-        if (hef === undefined) return null;
-
-        const laMin = hef + hDEffMm + tfixMm;
-        const laAvailable = model.availableLengths.find(function (la) { return la >= laMin; });
-        if (!laAvailable) return null;
-
-        const maxHD = (laAvailable - hef - tfixMm) + recessedDepth;
-        if (maxHD < hD) return null;
-
-        return {
-          ...model,
-          laRecommended: laAvailable,
-          maxHD: Number(maxHD.toFixed(0)),
-          hef,
-        };
-      })
-      .filter(Boolean);
-
-    // SORTOWANIE: LXK → LDK → inne → LFH GZN
-    const lxkRec = recs.find(function (r) { return r.name === 'LXK 10 H'; });
-    const ldkRecs = recs.filter(function (r) { return r.name.includes('LDK') && r.name !== 'LXK 10 H'; });
-    const lfhGznRec = recs.find(function (r) { return r.name === 'LFH GZN'; });
-    const inneRecs = recs.filter(function (r) {
-      return r.name !== 'LXK 10 H' &&
-        !r.name.includes('LDK') &&
-        r.name !== 'LFH GZN';
-    });
-
-    const sortedLDK = ldkRecs.sort(function (a, b) { return a.laRecommended - b.laRecommended; });
-    const sortedInne = inneRecs.sort(function (a, b) { return a.laRecommended - b.laRecommended; });
-
-    const sortedRecs = [
-      ...(lxkRec ? [lxkRec] : []),
-      ...sortedLDK,
-      ...sortedInne,
-      ...(lfhGznRec ? [lfhGznRec] : [])
-    ];
-
-    if (sortedRecs.length === 0) {
-      setRecommendations([]);
-      setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
-    } else {
-      setRecommendations(sortedRecs);
-      sendEmail(sortedRecs);
-      setErrors({});
-    }
     setStep(5);
   };
 
-  const nextStep = function () { if (validateStep(step)) setStep(function (prev) { return prev + 1; }); };
-  const prevStep = function () { setStep(function (prev) { return prev - 1; }); };
+  const nextStep = function () {
+    if (validateStep(step)) setStep(function (prev) { return prev + 1; });
+  };
+
+  const prevStep = function () {
+    setStep(function (prev) { return prev - 1; });
+  };
 
   const goToStep = function (index) {
     if (index > step) {
       let isValid = true;
-      for (let i = step; i < index; i++) if (!validateStep(i)) { isValid = false; break; }
+      for (let i = step; i < index; i++) {
+        if (!validateStep(i)) {
+          isValid = false;
+          break;
+        }
+      }
       if (isValid) setStep(index);
-    } else setStep(index);
+    } else {
+      setStep(index);
+    }
   };
 
   const handleStartOver = function () {
@@ -265,21 +261,19 @@ function App() {
 
     return (
       <Box
-        sx={function () {
-          return {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            backgroundColor: active ? '#dd0000' : completed ? '#4caf50' : '#e0e0e0',
-            color: active || completed ? '#ffffff' : '#999999',
-            fontSize: '1.2rem',
-            transition: 'all 0.3s ease',
-            boxShadow: active ? '0 0 10px rgba(221, 0, 0, 0.3)' : 'none',
-          };
-        }()}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          backgroundColor: active ? '#dd0000' : completed ? '#4caf50' : '#e0e0e0',
+          color: active || completed ? '#ffffff' : '#999999',
+          fontSize: '1.2rem',
+          transition: 'all 0.3s ease',
+          boxShadow: active ? '0 0 10px rgba(221, 0, 0, 0.3)' : 'none',
+        }}
       >
         {stepIconsList[iconIndex]}
       </Box>
@@ -287,11 +281,11 @@ function App() {
   }
 
   const stepComponents = [
-    <Step0 substrate={formData.substrate} setSubstrate={function (v) { return updateFormData('substrate', v); }} errors={errors} nextStep={nextStep} />,
-    <Step1 insulationType={formData.insulationType} setInsulationType={function (v) { return updateFormData('insulationType', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <Step2 hD={formData.hD} setHD={function (v) { return updateFormData('hD', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={function (v) { return updateFormData('adhesiveThickness', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={function (v) { return updateFormData('recessedDepth', v); }} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
+    <Step0 substrate={formData.substrate} setSubstrate={(v) => updateFormData('substrate', v)} errors={errors} nextStep={nextStep} />,
+    <Step1 insulationType={formData.insulationType} setInsulationType={(v) => updateFormData('insulationType', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <Step2 hD={formData.hD} setHD={(v) => updateFormData('hD', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={(v) => updateFormData('adhesiveThickness', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={(v) => updateFormData('recessedDepth', v)} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
     <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} email={email} />,
   ];
 
@@ -310,15 +304,21 @@ function App() {
         ) : (
           <>
             <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
-              {stepLabels.map(function (label, index) {
-                return (
-                  <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
-                    <StepLabel StepIconComponent={CustomStepIcon} onClick={function () { return goToStep(index); }} sx={{ cursor: 'pointer', fontSize: { xs: '0.65rem', sm: '0.875rem' }, '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } } }}>
-                      {label}
-                    </StepLabel>
-                  </Step>
-                );
-              })}
+              {stepLabels.map((label, index) => (
+                <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
+                  <StepLabel
+                    StepIconComponent={CustomStepIcon}
+                    onClick={() => goToStep(index)}
+                    sx={{
+                      cursor: 'pointer',
+                      fontSize: { xs: '0.65rem', sm: '0.875rem' },
+                      '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } }
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
             </MuiStepper>
             <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
               <Typography variant="h5" component="h2" gutterBottom align="center">{stepLabels[step]}</Typography>
@@ -331,4 +331,4 @@ function App() {
   );
 }
 
-export default App; //defaultowa appka
+export default App;
