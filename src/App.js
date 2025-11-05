@@ -129,7 +129,7 @@ function App() {
       recommendations_html: recommendationsHtml
     };
 
-    emailjs.send('service_162dpuc', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_')
+    emailjs.send('service_wl8dg9a', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_')
       .then((response) => {
         console.log('Email wysłany!', response.status, response.text);
       })
