@@ -1,17 +1,13 @@
-
 // src/Steps.js – PEŁNY, ZAKTUALIZOWANY (dodano kolumnę z PDF)
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
   Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Link as MuiLink, TextField, Alert
+  Link as MuiLink, Alert
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import EmailIcon from '@mui/icons-material/Email';
-import SendIcon from '@mui/icons-material/Send';
-import emailjs from 'emailjs-com';
 import { substrates, insulationTypes } from './data';
 
 export function Step0(props) {
@@ -130,104 +126,11 @@ export function StepRecessedDepth(props) {
 }
 
 export function Step4(props) {
-  const { recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessedDepth, errors } = props;
-  const [clientEmail, setClientEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
-  const [isSending, setIsSending] = useState(false);
+  const { recommendations, prevStep, setStep, substrate, insulationType, hD, adhesiveThickness, recessedDepth, errors, email } = props;
 
   const substrateLabel = substrates.find(function(s) { return s.value === substrate; })?.label;
   const insulationTypeLabel = insulationTypes.find(function(i) { return i.value === insulationType; })?.label;
   const handleStartOver = function() { return setStep(0); };
-
-  const validateEmail = function(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleEmailChange = function(event) {
-    const email = event.target.value;
-    setClientEmail(email);
-    if (email && !validateEmail(email)) {
-      setEmailError('Proszę wpisać prawidłowy adres email');
-    } else {
-      setEmailError('');
-    }
-  };
-
-  const handleSendRecommendations = async function() {
-    if (!clientEmail) {
-      setEmailError('Proszę wpisać adres email');
-      return;
-    }
-
-    if (!validateEmail(clientEmail)) {
-      setEmailError('Proszę wpisać prawidłowy adres email');
-      return;
-    }
-
-    setIsSending(true);
-
-    const recommendationsSummary = {
-      substrate: substrateLabel,
-      insulationType: insulationTypeLabel,
-      insulationThickness: hD,
-      adhesiveThickness: adhesiveThickness,
-      recessedDepth: recessedDepth,
-      recommendations: recommendations.map(function(rec) {
-        return {
-          name: rec.name,
-          length: rec.laRecommended,
-          material: rec.material,
-          hef: rec.hef,
-        };
-      }),
-      clientEmail: clientEmail,
-      timestamp: new Date().toISOString(),
-    };
-
-    try {
-      const templateParams = {
-        client_email: clientEmail,
-        substrate: recommendationsSummary.substrate,
-        insulationType: recommendationsSummary.insulationType,
-        insulationThickness: recommendationsSummary.insulationThickness,
-        adhesiveThickness: recommendationsSummary.adhesiveThickness,
-        recessedDepth: recommendationsSummary.recessedDepth,
-        recommendations_html: `
-          <table border="1" style="border-collapse: collapse; width: 100%;">
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Długość (mm)</th>
-                <th>Materiał</th>
-                <th>Hef (mm)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${recommendationsSummary.recommendations.map(rec => `
-                <tr>
-                  <td>${rec.name}</td>
-                  <td>${rec.length}</td>
-                  <td>${rec.material}</td>
-                  <td>${rec.hef}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        `,
-        timestamp: recommendationsSummary.timestamp,
-      };
-
-      await emailjs.send('service_162dpuc', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_');
-      setEmailSent(true);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      setEmailError('Wystąpił błąd podczas wysyłania rekomendacji.');
-    } finally {
-      setIsSending(false);
-    }
-  };
 
   const summaryData = [
     { name: 'Podłoże', value: substrateLabel },
@@ -261,7 +164,7 @@ export function Step4(props) {
       ) : recommendations.length > 0 ? (
         <Box>
           <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto', mb: 3 }}>
-            <Table stickyHeader size="small">
+            <Table stickyHeader size=".small">
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', fontSize: { xs: '0.75rem', sm: '1rem' } }}>
@@ -313,45 +216,10 @@ export function Step4(props) {
             </Table>
           </TableContainer>
 
-          {emailSent ? (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              ✓ Rekomendacje zostały wysłane na adres {clientEmail}. Sprawdź swoją skrzynkę odbiorczą!
-            </Alert>
-          ) : (
-            <Paper sx={{ p: 3, mb: 3, backgroundColor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <EmailIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Wyślij rekomendacje na email
-                </Typography>
-              </Box>
-              <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-                Wpisz swój adres email, aby otrzymać rekomendacje. Wyślemy je również do naszego zespołu technicznego.
-              </Typography>
-              <TextField
-                fullWidth
-                label="Twój adres email"
-                type="email"
-                placeholder="przykład@email.com"
-                value={clientEmail}
-                onChange={handleEmailChange}
-                error={!!emailError}
-                helperText={emailError}
-                disabled={isSending}
-                sx={{ mb: 2 }}
-              />
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={<SendIcon />}
-                onClick={handleSendRecommendations}
-                disabled={isSending || !clientEmail || !!emailError}
-                sx={{ mb: 2 }}
-              >
-                {isSending ? 'Wysyłanie...' : 'Wyślij rekomendacje'}
-              </Button>
-            </Paper>
-          )}
+          <Alert severity="success" sx={{ mb: 3 }}>
+            ✓ Rekomendacje zostały wysłane na adres {email}. Sprawdź swoją skrzynkę odbiorczą!
+          </Alert>
+
         </Box>
       ) : (
         <Typography variant="h6" align="center" sx={{ my: 4, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.25rem' } }}>

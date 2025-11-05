@@ -1,8 +1,9 @@
-// src/App.js – PEŁNY, POPRAWIONY (usunięto nieużywaną zmienną ttol)
+// src/App.js – PEŁNY, POPRAWIONY
 import React, { useState } from 'react';
+import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel } from '@mui/material';
-import { models } from './data';
+import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button } from '@mui/material';
+import { models, substrates, insulationTypes } from './data';
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
 import FoundationIcon from '@mui/icons-material/Foundation';
 import LayersIcon from '@mui/icons-material/Layers';
@@ -24,7 +25,44 @@ const starfixTheme = createTheme({
   },
 });
 
+function EmailStep({ setEmail, nextStep }) {
+  const [localEmail, setLocalEmail] = useState('');
+  const [error, setError] = useState('');
+
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleSubmit = () => {
+    if (validateEmail(localEmail)) {
+      setEmail(localEmail);
+      nextStep();
+    } else {
+      setError('Proszę podać poprawny adres email.');
+    }
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 3 }}>
+      <Typography variant="h6">Podaj swój adres email, aby kontynuować</Typography>
+      <TextField
+        label="Email"
+        variant="outlined"
+        value={localEmail}
+        onChange={(e) => setLocalEmail(e.target.value)}
+        onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+        error={!!error}
+        helperText={error}
+        sx={{ width: '100%', maxWidth: '400px' }}
+      />
+      <Button variant="contained" onClick={handleSubmit}>Rozpocznij konfigurację</Button>
+    </Box>
+  );
+}
+
 function App() {
+  const [email, setEmail] = useState('');
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
     substrate: 'A',
@@ -37,11 +75,11 @@ function App() {
   const [errors, setErrors] = useState({});
 
   const updateFormData = (field, value) => {
-    setFormData(function(prev) { return { ...prev, [field]: value }; });
-    setErrors(function(prev) { return { ...prev, [field]: '' }; });
+    setFormData(function (prev) { return { ...prev, [field]: value }; });
+    setErrors(function (prev) { return { ...prev, [field]: '' }; });
   };
 
-  const validateStep = function(currentStep) {
+  const validateStep = function (currentStep) {
     const newErrors = {};
     if (currentStep === 0 && !formData.substrate) newErrors.substrate = 'Wybierz rodzaj podłoża';
     if (currentStep === 1 && !formData.insulationType) newErrors.insulationType = 'Wybierz typ izolacji';
@@ -52,7 +90,57 @@ function App() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const calculateLa = function() {
+  const sendEmail = (recommendations) => {
+    const substrateLabel = substrates.find(s => s.value === formData.substrate)?.label;
+    const insulationTypeLabel = insulationTypes.find(i => i.value === formData.insulationType)?.label;
+
+    const recommendationsHtml = `
+      <table border="1" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>Nazwa</th>
+            <th>Długość (mm)</th>
+            <th>Materiał</th>
+            <th>Hef (mm)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recommendations.map(rec => `
+            <tr>
+              <td>${rec.name}</td>
+              <td>${rec.laRecommended}</td>
+              <td>${rec.material}</td>
+              <td>${rec.hef}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    const templateParams = {
+      to_email: email,
+      subject: 'Rekomendacje Łączników ETICS',
+      client_email: email,
+      substrate: substrateLabel,
+      insulationType: insulationTypeLabel,
+      insulationThickness: formData.hD,
+      adhesiveThickness: formData.adhesiveThickness,
+      recessedDepth: formData.recessedDepth === 0 ? 'Brak (montaż na płasko)' : `${formData.recessedDepth} mm`,
+      recommendations_html: recommendationsHtml,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log("Sending email with params:", templateParams);
+
+    emailjs.send('service_162dpuc', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_')
+      .then((response) => {
+         console.log('SUCCESS!', response.status, response.text);
+      }, (err) => {
+         console.log('FAILED...', err);
+      });
+  };
+
+  const calculateLa = function () {
     if (!validateStep(4)) return;
     const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
 
@@ -66,9 +154,9 @@ function App() {
     const hDEffMm = hDEff;
     const tfixMm = adhesiveThickness;
 
-    const filteredModels = models.filter(function(model) {
+    const filteredModels = models.filter(function (model) {
       return model.categories.includes(substrate) &&
-      (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin));
+        (insulationType === 'EPS' || (insulationType === 'MW' && model.hasMetalPin));
     });
 
     if (!filteredModels.length) {
@@ -78,12 +166,12 @@ function App() {
     }
 
     const recs = filteredModels
-      .map(function(model) {
+      .map(function (model) {
         const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
         if (hef === undefined) return null;
 
         const laMin = hef + hDEffMm + tfixMm;
-        const laAvailable = model.availableLengths.find(function(la) { return la >= laMin; });
+        const laAvailable = model.availableLengths.find(function (la) { return la >= laMin; });
         if (!laAvailable) return null;
 
         const maxHD = (laAvailable - hef - tfixMm) + recessedDepth;
@@ -99,17 +187,17 @@ function App() {
       .filter(Boolean);
 
     // SORTOWANIE: LXK → LDK → inne → LFH GZN
-    const lxkRec = recs.find(function(r) { return r.name === 'LXK 10 H'; });
-    const ldkRecs = recs.filter(function(r) { return r.name.includes('LDK') && r.name !== 'LXK 10 H'; });
-    const lfhGznRec = recs.find(function(r) { return r.name === 'LFH GZN'; });
-    const inneRecs = recs.filter(function(r) {
+    const lxkRec = recs.find(function (r) { return r.name === 'LXK 10 H'; });
+    const ldkRecs = recs.filter(function (r) { return r.name.includes('LDK') && r.name !== 'LXK 10 H'; });
+    const lfhGznRec = recs.find(function (r) { return r.name === 'LFH GZN'; });
+    const inneRecs = recs.filter(function (r) {
       return r.name !== 'LXK 10 H' &&
-      !r.name.includes('LDK') &&
-      r.name !== 'LFH GZN';
+        !r.name.includes('LDK') &&
+        r.name !== 'LFH GZN';
     });
 
-    const sortedLDK = ldkRecs.sort(function(a, b) { return a.laRecommended - b.laRecommended; });
-    const sortedInne = inneRecs.sort(function(a, b) { return a.laRecommended - b.laRecommended; });
+    const sortedLDK = ldkRecs.sort(function (a, b) { return a.laRecommended - b.laRecommended; });
+    const sortedInne = inneRecs.sort(function (a, b) { return a.laRecommended - b.laRecommended; });
 
     const sortedRecs = [
       ...(lxkRec ? [lxkRec] : []),
@@ -123,15 +211,16 @@ function App() {
       setErrors({ global: 'Brak odpowiednich łączników. Spróbuj zmniejszyć grubość izolacji lub zwiększyć zagłębienie.' });
     } else {
       setRecommendations(sortedRecs);
+      sendEmail(sortedRecs);
       setErrors({});
     }
     setStep(5);
   };
 
-  const nextStep = function() { if (validateStep(step)) setStep(function(prev) { return prev + 1; }); };
-  const prevStep = function() { setStep(function(prev) { return prev - 1; }); };
+  const nextStep = function () { if (validateStep(step)) setStep(function (prev) { return prev + 1; }); };
+  const prevStep = function () { setStep(function (prev) { return prev - 1; }); };
 
-  const goToStep = function(index) {
+  const goToStep = function (index) {
     if (index > step) {
       let isValid = true;
       for (let i = step; i < index; i++) if (!validateStep(i)) { isValid = false; break; }
@@ -139,7 +228,7 @@ function App() {
     } else setStep(index);
   };
 
-  const handleStartOver = function() {
+  const handleStartOver = function () {
     setFormData({
       substrate: 'A',
       insulationType: 'EPS',
@@ -176,7 +265,7 @@ function App() {
 
     return (
       <Box
-        sx={function() {
+        sx={function () {
           return {
             display: 'flex',
             alignItems: 'center',
@@ -198,12 +287,12 @@ function App() {
   }
 
   const stepComponents = [
-    <Step0 substrate={formData.substrate} setSubstrate={function(v) { return updateFormData('substrate', v); }} errors={errors} nextStep={nextStep} />,
-    <Step1 insulationType={formData.insulationType} setInsulationType={function(v) { return updateFormData('insulationType', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <Step2 hD={formData.hD} setHD={function(v) { return updateFormData('hD', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={function(v) { return updateFormData('adhesiveThickness', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={function(v) { return updateFormData('recessedDepth', v); }} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
-    <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} />,
+    <Step0 substrate={formData.substrate} setSubstrate={function (v) { return updateFormData('substrate', v); }} errors={errors} nextStep={nextStep} />,
+    <Step1 insulationType={formData.insulationType} setInsulationType={function (v) { return updateFormData('insulationType', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <Step2 hD={formData.hD} setHD={function (v) { return updateFormData('hD', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={function (v) { return updateFormData('adhesiveThickness', v); }} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={function (v) { return updateFormData('recessedDepth', v); }} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
+    <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} email={email} />,
   ];
 
   return (
@@ -216,21 +305,27 @@ function App() {
         <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Konfigurator Łączników ETICS
         </Typography>
-        <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
-          {stepLabels.map(function(label, index) {
-            return (
-              <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
-                <StepLabel StepIconComponent={CustomStepIcon} onClick={function() { return goToStep(index); }} sx={{ cursor: 'pointer', fontSize: { xs: '0.65rem', sm: '0.875rem' }, '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } } }}>
-                  {label}
-                </StepLabel>
-              </Step>
-            );
-          })}
-        </MuiStepper>
-        <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
-          <Typography variant="h5" component="h2" gutterBottom align="center">{stepLabels[step]}</Typography>
-          <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
-        </Box>
+        {!emailSubmitted ? (
+          <EmailStep setEmail={setEmail} nextStep={() => setEmailSubmitted(true)} />
+        ) : (
+          <>
+            <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
+              {stepLabels.map(function (label, index) {
+                return (
+                  <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
+                    <StepLabel StepIconComponent={CustomStepIcon} onClick={function () { return goToStep(index); }} sx={{ cursor: 'pointer', fontSize: { xs: '0.65rem', sm: '0.875rem' }, '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } } }}>
+                      {label}
+                    </StepLabel>
+                  </Step>
+                );
+              })}
+            </MuiStepper>
+            <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
+              <Typography variant="h5" component="h2" gutterBottom align="center">{stepLabels[step]}</Typography>
+              <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
+            </Box>
+          </>
+        )}
       </Container>
     </ThemeProvider>
   );
