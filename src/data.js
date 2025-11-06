@@ -2,17 +2,17 @@
 export const models = [
   {
     name: 'LDK TZ',
-    hef: { 'A': 25, 'B': 60, 'C': 80, 'D': 80, 'E': 80 },
+    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420],
     material: 'polipropylen',
-    hasMetalPin: false,
+    hasMetalPin: true,
     maxFixtureThickness: [40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 280, 320, 360],
     pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/1-ETA-2024.pdf'
   },
   {
     name: 'LDK TN',
-    hef: { 'A': 25, 'B': 60, 'C': 80, 'D': 80, 'E': 80 },
+    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['A', 'B', 'C', 'D', 'E'],
     availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
@@ -43,7 +43,7 @@ export const models = [
   {
     name: 'LFH TZ',
     hef: 40,
-    categories: ['A', 'B', 'C'],
+    categories: ['A', 'B', 'D'],
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
@@ -53,7 +53,7 @@ export const models = [
   {
     name: 'LEH TN',
     hef: 40,
-    categories: ['A', 'B', 'C'],
+    categories: ['A', 'B', 'D'],
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
@@ -63,7 +63,7 @@ export const models = [
   {
     name: 'LFH GZN',
     hef: 40,
-    categories: ['A', 'B', 'C'],
+    categories: ['A', 'B', 'D'],
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: false,
@@ -96,7 +96,7 @@ export const substrates = [
   { value: 'A', label: 'Beton zwykły (C12/15 do C50/60)' },
   { value: 'B', label: 'Cegła pełna (ceramiczna/silikatowa)' },
   { value: 'C', label: 'Cegła perforowana/kanałowa (Porotherm 25, 17 mm)' },
-  { value: 'D', label: 'Beton na kruszywie lekkim (LAC)' },
+  { value: 'D', label: 'Beton na kruszywie lekkim (LAC)(Pełny bez otworów)' },
   { value: 'E', label: 'Beton komórkowy (AAC)' }
 ];
 

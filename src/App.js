@@ -242,7 +242,7 @@ function App() {
     'Typ izolacji',
     'Grubość izolacji',
     'Grubość warstwy kleju',
-    'Głębokość zagłębienia',
+    'Montaż z zaślepką',
     'Rekomendacja dla',
   ];
 
