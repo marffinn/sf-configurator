@@ -77,7 +77,7 @@ export function Step2(props) {
 }
 
 export function StepAdhesive(props) {
-  const { adhesiveThickness, setAdhesiveThickness, errors, nextStep, prevStep } = props;
+  const { adhesiveThickness, setAdhesiveThickness, errors, prevStep, buttonText = 'Dalej', onNext } = props;
   const handleChange = function (event, value) {
     return setAdhesiveThickness(value);
   };
@@ -88,7 +88,7 @@ export function StepAdhesive(props) {
       {errors.adhesiveThickness && <Typography color="error" variant="caption">{errors.adhesiveThickness}</Typography>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
-        <Button variant="contained" onClick={nextStep} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}>Dalej</Button>
+        <Button variant="contained" onClick={onNext} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}>{buttonText}</Button>
       </Box>
     </Box>
   );
@@ -96,25 +96,15 @@ export function StepAdhesive(props) {
 
 // ZAKTUALIZOWANY: zakres 20–160 mm, krok 20 mm, domyślna 20 mm
 export function StepRecessedDepth(props) {
-  const { recessedDepth, setRecessedDepth, errors, nextStep, prevStep } = props;
+  const { recessedDepth, setRecessedDepth, errors, prevStep, buttonText = 'Dalej', onNext } = props;
 
-  const [useRecessed, setUseRecessed] = React.useState(recessedDepth > 0);
-
-  // Domyślna wartość 20 mm przy "Tak"
-  React.useEffect(() => {
-    if (useRecessed && recessedDepth === 0) {
-      setRecessedDepth(20);
-    } else if (!useRecessed && recessedDepth !== 0) {
-      setRecessedDepth(0);
-    }
-  }, [useRecessed, recessedDepth, setRecessedDepth]);
+  const useRecessed = recessedDepth > 0;
 
   const handleToggle = (event) => {
     const checked = event.target.checked;
-    setUseRecessed(checked);
-    if (checked && recessedDepth === 0) {
+    if (checked) {
       setRecessedDepth(20);
-    } else if (!checked) {
+    } else {
       setRecessedDepth(0);
     }
   };
@@ -177,11 +167,11 @@ export function StepRecessedDepth(props) {
         </Button>
         <Button
           variant="contained"
-          onClick={nextStep}
+          onClick={onNext}
           endIcon={<ArrowForwardIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
-          Pokaż rekomendacje
+          {buttonText}
         </Button>
       </Box>
     </Box>

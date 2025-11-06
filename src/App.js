@@ -83,9 +83,9 @@ function App() {
     const newErrors = {};
     if (currentStep === 0 && !formData.substrate) newErrors.substrate = 'Wybierz rodzaj podłoża';
     if (currentStep === 1 && !formData.insulationType) newErrors.insulationType = 'Wybierz typ izolacji';
-    if (currentStep === 2 && (formData.hD < 10 || formData.hD > 400)) newErrors.hD = 'Grubość izolacji musi być między 10 a 400 mm';
-    if (currentStep === 3 && (formData.adhesiveThickness < 10 || formData.adhesiveThickness > 50)) newErrors.adhesiveThickness = 'Grubość warstwy kleju musi być między 10 a 50 mm';
-    if (currentStep === 4 && (formData.recessedDepth < 0 || formData.recessedDepth > 50)) newErrors.recessedDepth = 'Głębokość montażu zagłębionego musi być między 0 a 50 mm';
+    if (currentStep === 2 && (formData.recessedDepth < 0 || formData.recessedDepth > 160)) newErrors.recessedDepth = 'Głębokość montażu zagłębionego musi być między 0 a 160 mm';
+    if (currentStep === 3 && (formData.hD < 10 || formData.hD > 400)) newErrors.hD = 'Grubość izolacji musi być między 10 a 400 mm';
+    if (currentStep === 4 && (formData.adhesiveThickness < 10 || formData.adhesiveThickness > 50)) newErrors.adhesiveThickness = 'Grubość warstwy kleju musi być między 10 a 50 mm';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -240,18 +240,18 @@ function App() {
   const stepLabels = [
     'Rodzaj podłoża',
     'Typ izolacji',
+    'Montaż z zaślepką',
     'Grubość izolacji',
     'Grubość warstwy kleju',
-    'Montaż z zaślepką',
     'Rekomendacja dla',
   ];
 
   const stepIconsList = [
     <FoundationIcon key="foundation" />,
     <LayersIcon key="layers" />,
+    <SettingsIcon key="settings" />,
     <HeightIcon key="height" />,
     <BuildIcon key="build" />,
-    <SettingsIcon key="settings" />,
     <CheckCircleIcon key="check" />,
   ];
 
@@ -283,9 +283,23 @@ function App() {
   const stepComponents = [
     <Step0 substrate={formData.substrate} setSubstrate={(v) => updateFormData('substrate', v)} errors={errors} nextStep={nextStep} />,
     <Step1 insulationType={formData.insulationType} setInsulationType={(v) => updateFormData('insulationType', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
+    <StepRecessedDepth
+      recessedDepth={formData.recessedDepth}
+      setRecessedDepth={(v) => updateFormData('recessedDepth', v)}
+      errors={errors}
+      prevStep={prevStep}
+      buttonText="Dalej"
+      onNext={nextStep}
+    />,
     <Step2 hD={formData.hD} setHD={(v) => updateFormData('hD', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={(v) => updateFormData('adhesiveThickness', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={(v) => updateFormData('recessedDepth', v)} errors={errors} nextStep={calculateLa} prevStep={prevStep} />,
+    <StepAdhesive
+      adhesiveThickness={formData.adhesiveThickness}
+      setAdhesiveThickness={(v) => updateFormData('adhesiveThickness', v)}
+      errors={errors}
+      prevStep={prevStep}
+      buttonText="Pokaż rekomendacje"
+      onNext={calculateLa}
+    />,
     <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} email={email} />,
   ];
 
