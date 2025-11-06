@@ -293,9 +293,6 @@ function App() {
     <ThemeProvider theme={starfixTheme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <img src={`${process.env.PUBLIC_URL}/logotyp_outline.svg`} alt="Starfix Logo" style={{ width: '100%', maxWidth: '250px', height: 'auto' }} />
-        </Box>
         <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Konfigurator Łączników ETICS
         </Typography>
@@ -307,7 +304,7 @@ function App() {
               {stepLabels.map((label, index) => (
                 <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
                   <StepLabel
-                    StepIconComponent={CustomStepIcon}
+                    slots={{ stepIcon: CustomStepIcon }}
                     onClick={() => goToStep(index)}
                     sx={{
                       cursor: 'pointer',

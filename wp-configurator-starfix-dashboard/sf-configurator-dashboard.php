@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: SF Konfigurator Dashboard
- * Description: Osadza konfigurator z https://marffinn.github.io/sf-configurator/ i zbiera statystyki w dashboardzie.
- * Version: 1.1.0
+ * Description: Osadza konfigurator i zbiera statystyki z opcją usuwania pojedynczych rekordów.
+ * Version: 1.3.0
  * Author: Marffinn
  * Text Domain: sf-configurator-dashboard
  */
@@ -76,7 +76,6 @@ function sf_register_stats_endpoint() {
 }
 
 function sf_handle_stats_submission(WP_REST_Request $request) {
-    // Sprawdź nonce
     $nonce = $request->get_header('X-WP-Nonce');
     if (!wp_verify_nonce($nonce, 'wp_rest')) {
         return new WP_Error('invalid_nonce', 'Błędny nonce.', ['status' => 403]);
@@ -142,7 +141,6 @@ function sf_inject_communication_script() {
                 restUrl: '<?php echo $rest_url; ?>'
             };
 
-            // Nasłuchuj wiadomości z iframe
             window.addEventListener('message', function(event) {
                 if (event.origin !== 'https://marffinn.github.io') return;
                 if (event.data && event.data.type === 'SF_STATS') {
@@ -175,29 +173,123 @@ function sf_enqueue_styles() {
     }
 }
 
+// === AJAX: Usuń wszystkie rekordy ===
+add_action('wp_ajax_sf_delete_all_stats', 'sf_handle_delete_all');
+function sf_handle_delete_all() {
+    check_ajax_referer('sf_admin_nonce', 'nonce');
+    if (!current_user_can('manage_options')) {
+        wp_die('Brak uprawnień');
+    }
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'sf_stats';
+    $deleted = $wpdb->query("TRUNCATE TABLE $table_name");
+
+    if ($deleted !== false) {
+        wp_send_json_success('Usunięto wszystkie rekordy.');
+    } else {
+        wp_send_json_error('Błąd usuwania danych.');
+    }
+}
+
+// === AJAX: Usuń pojedynczy rekord ===
+add_action('wp_ajax_sf_delete_single_stat', 'sf_handle_delete_single');
+function sf_handle_delete_single() {
+    check_ajax_referer('sf_admin_nonce', 'nonce');
+    if (!current_user_can('manage_options')) wp_die('Brak uprawnień');
+
+    $id = intval($_POST['id']);
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'sf_stats';
+    $deleted = $wpdb->delete($table_name, ['id' => $id], ['%d']);
+
+    if ($deleted) {
+        wp_send_json_success();
+    } else {
+        wp_send_json_error('Nie znaleziono rekordu');
+    }
+}
+
+// === AJAX: Pobierz podsumowanie (do wykresów i liczników) ===
+add_action('wp_ajax_sf_get_stats_summary', 'sf_get_stats_summary');
+function sf_get_stats_summary() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'sf_stats';
+
+    $total = $wpdb->get_var("SELECT COUNT(*) FROM $table");
+    $today = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE DATE(timestamp) = CURDATE()");
+    $with_email = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE email IS NOT NULL AND email != ''");
+    $by_insulation = $wpdb->get_results("SELECT insulation_type, COUNT(*) as count FROM $table GROUP BY insulation_type");
+    $timeline = $wpdb->get_results("SELECT DATE(timestamp) as date, COUNT(*) as count FROM $table WHERE timestamp >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) GROUP BY date ORDER BY date");
+
+    wp_send_json_success([
+        'total' => $total,
+        'today' => $today,
+        'with_email' => $with_email,
+        'by_insulation' => $by_insulation,
+        'timeline' => $timeline
+    ]);
+}
+
+// === AJAX: Pobierz wiersze tabeli recent ===
+add_action('wp_ajax_sf_get_recent_rows', 'sf_get_recent_rows');
+function sf_get_recent_rows() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'sf_stats';
+    $rows = $wpdb->get_results("SELECT * FROM $table ORDER BY timestamp DESC LIMIT 10");
+
+    foreach ($rows as $row) {
+        $recs = json_decode($row->recommendations, true);
+        $count = is_array($recs) ? count($recs) : 0;
+        echo '<tr data-id="'.$row->id.'">
+            <td style="padding: 4px;">'.date('d.m H:i', strtotime($row->timestamp)).'</td>
+            <td style="padding: 4px;"><strong>'.esc_html($row->substrate).'</strong></td>
+            <td style="padding: 4px;">'.$row->insulation_type.'</td>
+            <td style="padding: 4px;">'.$row->hD.'</td>
+            <td style="padding: 4px;">'.$row->adhesive_thickness.'</td>
+            <td style="padding: 4px;">'.$row->recessed_depth.'</td>
+            <td style="padding: 4px;"><strong>'.$count.'</strong></td>
+            <td style="padding: 4px;">'.($row->email ? substr(esc_html($row->email), 0, 15).'...' : '<em>brak</em>').'</td>
+            <td style="padding: 4px;"><button class="delete-single-btn button button-small" style="background:#dc3232;color:white;border:none;border-radius:3px;" data-id="'.$row->id.'">Usuń</button></td>
+        </tr>';
+    }
+    wp_die();
+}
+
+// === AJAX: Pobierz statystyki izolacji ===
+add_action('wp_ajax_sf_get_insulation_stats', 'sf_get_insulation_stats');
+function sf_get_insulation_stats() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'sf_stats';
+    $stats = $wpdb->get_results("SELECT insulation_type, COUNT(*) as count, AVG(hD) as avg_hd FROM $table GROUP BY insulation_type");
+    foreach ($stats as $s) {
+        echo '<tr><td style="padding: 4px;">'.$s->insulation_type.'</td><td style="padding: 4px;"><strong>'.$s->count.'</strong></td><td style="padding: 4px;">'.round($s->avg_hd).'</td></tr>';
+    }
+    wp_die();
+}
+
+// === AJAX: Pobierz statystyki podłoża ===
+add_action('wp_ajax_sf_get_substrate_stats', 'sf_get_substrate_stats');
+function sf_get_substrate_stats() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'sf_stats';
+    $stats = $wpdb->get_results("SELECT substrate, COUNT(*) as count FROM $table GROUP BY substrate");
+    foreach ($stats as $s) {
+        echo '<tr><td style="padding: 4px;"><strong>'.$s->substrate.'</strong></td><td style="padding: 4px;">'.$s->count.'</td></tr>';
+    }
+    wp_die();
+}
+
 // === ENQUEUE CHART.JS DLA DASHBOARD ===
 add_action('admin_enqueue_scripts', 'sf_admin_scripts');
 function sf_admin_scripts($hook) {
     if ($hook !== 'toplevel_page_sf-dashboard') return;
 
-    // Chart.js (lokalna kopia)
     wp_enqueue_script('chart-js', plugin_dir_url(__FILE__) . 'assets/chart.umd.min.js', [], '4.4.0', true);
-    wp_enqueue_script('sf-admin-js', plugin_dir_url(__FILE__) . 'assets/admin.js', ['jquery', 'chart-js'], '1.1', true);
 
-    // Przekaż dane do JS
-    global $wpdb;
-    $table = $wpdb->prefix . 'sf_stats';
-
-    $timeline = $wpdb->get_results("
-        SELECT DATE(timestamp) as date, COUNT(*) as count 
-        FROM $table 
-        WHERE timestamp >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-        GROUP BY DATE(timestamp)
-        ORDER BY date
-    ");
-
-    wp_localize_script('sf-admin-js', 'sfChartData', [
-        'timeline' => $timeline
+    wp_localize_script('chart-js', 'sfAdminData', [
+        'nonce' => wp_create_nonce('sf_admin_nonce'),
+        'ajaxurl' => admin_url('admin-ajax.php')
     ]);
 }
 ?>
