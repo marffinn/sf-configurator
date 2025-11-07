@@ -1,17 +1,15 @@
-// src/Steps.js – WERSJA KOMPLETNA. Rozwiązuje wszystkie ostrzeżenia 'no-unused-vars' i dodaje logotyp do druku.
-
 import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
   Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Link as MuiLink, Alert, Switch, FormControlLabel
+  Link as MuiLink, Alert, Switch, FormControlLabel, useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import PrintIcon from '@mui/icons-material/Print';
 import { substrates, insulationTypes } from './data';
-
 import companyLogo from './logo.png';
 
 export function Step0(props) {
@@ -64,18 +62,36 @@ export function Step1(props) {
 
 export function Step2(props) {
   const { hD, setHD, errors, nextStep, prevStep } = props;
-  const handleChange = function (event, value) {
-    return setHD(value);
-  };
-  const marks = [
+  const theme = useTheme(); // Get the theme for breakpoint values
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // Check if screen is small
+
+  const handleChange = (event, value) => setHD(value);
+
+  // Define two versions of the marks
+  const desktopMarks = [
     { value: 50, label: '50mm' }, { value: 100, label: '100mm' }, { value: 150, label: '150mm' },
     { value: 200, label: '200mm' }, { value: 250, label: '250mm' }, { value: 300, label: '300mm' },
     { value: 350, label: '350mm' }, { value: 400, label: '400mm' },
   ];
+
+  // For mobile, we only show the tick mark, not the label, to prevent overlap
+  const mobileMarks = [
+    { value: 50 }, { value: 100 }, { value: 150 }, { value: 200 }, { value: 250 },
+    { value: 300 }, { value: 350 }, { value: 400 },
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: { xs: 1, sm: 2 } }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość izolacji: {hD} mm</Typography>
-      <Slider value={hD} onChange={handleChange} valueLabelDisplay="auto" min={10} max={400} step={10} marks={marks} />
+      <Slider
+        value={hD}
+        onChange={handleChange}
+        valueLabelDisplay="auto"
+        min={10}
+        max={400}
+        step={10}
+        marks={isSmallScreen ? mobileMarks : desktopMarks} // Use the correct marks for the screen size
+      />
       {errors.hD && <Typography color="error" variant="caption">{errors.hD}</Typography>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
@@ -85,19 +101,34 @@ export function Step2(props) {
   );
 }
 
+// === UPDATED: StepAdhesive is now responsive ===
 export function StepAdhesive(props) {
   const { adhesiveThickness, setAdhesiveThickness, errors, prevStep, buttonText = 'Dalej', onNext } = props;
-  const handleChange = function (event, value) {
-    return setAdhesiveThickness(value);
-  };
-  const marks = [
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const handleChange = (event, value) => setAdhesiveThickness(value);
+
+  const desktopMarks = [
     { value: 10, label: '10mm' }, { value: 20, label: '20mm' }, { value: 30, label: '30mm' },
     { value: 40, label: '40mm' }, { value: 50, label: '50mm' },
   ];
+  const mobileMarks = [
+    { value: 10 }, { value: 20 }, { value: 30 }, { value: 40 }, { value: 50 },
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: { xs: 1, sm: 2 } }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness} mm</Typography>
-      <Slider value={adhesiveThickness} onChange={handleChange} valueLabelDisplay="auto" min={10} max={50} step={5} marks={marks} />
+      <Slider
+        value={adhesiveThickness}
+        onChange={handleChange}
+        valueLabelDisplay="auto"
+        min={10}
+        max={50}
+        step={5}
+        marks={isSmallScreen ? mobileMarks : desktopMarks}
+      />
       {errors.adhesiveThickness && <Typography color="error" variant="caption">{errors.adhesiveThickness}</Typography>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
@@ -107,24 +138,35 @@ export function StepAdhesive(props) {
   );
 }
 
+// === UPDATED: StepRecessedDepth is now responsive ===
 export function StepRecessedDepth(props) {
   const { recessedDepth, setRecessedDepth, errors, prevStep, buttonText = 'Dalej', onNext } = props;
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const useRecessed = recessedDepth > 0;
-  const handleToggle = (event) => {
-    setRecessedDepth(event.target.checked ? 20 : 0);
-  };
-  const handleSliderChange = (event, value) => {
-    setRecessedDepth(value);
-  };
+
+  const handleToggle = (event) => setRecessedDepth(event.target.checked ? 20 : 0);
+  const handleSliderChange = (event, value) => setRecessedDepth(value);
+
+  const desktopMarks = [
+    { value: 20, label: '20mm' }, { value: 40, label: '40mm' }, { value: 60, label: '60mm' },
+    { value: 80, label: '80mm' }, { value: 100, label: '100mm' }, { value: 120, label: '120mm' },
+    { value: 140, label: '140mm' }, { value: 160, label: '160mm' }
+  ];
+  const mobileMarks = [
+    { value: 20 }, { value: 40 }, { value: 60 }, { value: 80 }, { value: 100 },
+    { value: 120 }, { value: 140 }, { value: 160 }
+  ];
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <FormControlLabel control={<Switch checked={useRecessed} onChange={handleToggle} color="primary" />} label={useRecessed ? 'Tak' : 'Nie'} labelPlacement="end" sx={{ '& .MuiFormControlLabel-label': { fontWeight: 500 } }} />
       </Box>
       {useRecessed && (
-        <Box sx={{ px: 2 }}>
+        <Box sx={{ px: { xs: 1, sm: 2 } }}>
           <Typography variant="body1" align="center" sx={{ mb: -1 }}>Głębokość zagłębienia: {recessedDepth} mm</Typography>
-          <Slider value={recessedDepth} onChange={handleSliderChange} valueLabelDisplay="auto" min={20} max={160} step={20} marks={[{ value: 20, label: '20mm' }, { value: 40, label: '40mm' }, { value: 60, label: '60mm' }, { value: 80, label: '80mm' }, { value: 100, label: '100mm' }, { value: 120, label: '120mm' }, { value: 140, label: '140mm' }, { value: 160, label: '160mm' }]} />
+          <Slider value={recessedDepth} onChange={handleSliderChange} valueLabelDisplay="auto" min={20} max={160} step={20} marks={isSmallScreen ? mobileMarks : desktopMarks} />
           {errors.recessedDepth && (<Typography color="error" variant="caption" align="center" display="block">{errors.recessedDepth}</Typography>)}
         </Box>
       )}
