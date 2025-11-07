@@ -250,10 +250,10 @@ function App() {
   // The new, centralized configuration for all step information
   const stepsConfig = [
     { label: 'Rodzaj podłoża', title: 'Wybierz rodzaj podłoża' },
-    { label: 'Typ izolacji', title: 'Wybierz typ izolacji' },
-    { label: 'Montaż z zaślepką', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
+    { label: 'Typ izolacji', title: 'Wybierz typ iolacji' },
+    { label: 'Montaż z zaślepką ?', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
     { label: 'Grubość izolacji', title: 'Podaj grubość izolacji' },
-    { label: 'Grubość warstwy kleju', title: 'Grubość warstwy kleju i tynku' },
+    { label: 'Łączna grubość warstwy kleju i tynku', title: '' },
     { label: 'Rekomendacja dla', title: 'Rekomendacja dla Twojej konfiguracji' },
   ];
 

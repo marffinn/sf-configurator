@@ -42,7 +42,7 @@ export function Step1(props) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControl fullWidth error={!!errors.insulationType}>
-        <Typography variant="subtitle1">Typ izolacji</Typography>
+        {/* <Typography variant="subtitle1">Typ izolacji</Typography> */}
         <Select value={insulationType} onChange={handleChange} displayEmpty>
           <MenuItem value="" disabled>Wybierz typ izolacji</MenuItem>
           {insulationTypes.map(function (t) {
@@ -117,7 +117,7 @@ export function StepAdhesive(props) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2 }}>
-      <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness} mm</Typography>
+      <Typography variant="body1" align="center" sx={{ mb: -1 }}>Łączna grubość warstwy kleju i tynku: {adhesiveThickness} mm</Typography>
       <Slider
         value={adhesiveThickness}
         onChange={handleChange}
@@ -213,7 +213,7 @@ export function Step4(props) {
     { name: 'Podłoże', value: substrateLabel },
     { name: 'Typ izolacji', value: insulationTypeLabel },
     { name: 'Grubość izolacji', value: `${hD} mm` },
-    { name: 'Grubość warstwy kleju', value: `${adhesiveThickness} mm` },
+    { name: 'Łączna grubość warstwy kleju i tynku', value: `${adhesiveThickness} mm` },
     { name: 'Głębokość zagłębienia', value: recessedDepth === 0 ? 'Brak (montaż na płasko)' : `${recessedDepth} mm` },
   ];
 
