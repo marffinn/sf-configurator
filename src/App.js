@@ -217,7 +217,7 @@ function App() {
     { label: 'Typ izolacji', title: 'Wybierz typ izolacji' },
     { label: 'Montaż z zaślepką', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
     { label: 'Grubość izolacji', title: 'Podaj grubość izolacji' },
-    { label: 'Grubość kleju', title: 'Grubość warstwy kleju i tynku' },
+    { label: 'Grubość warstwy kleju i tynku', title: 'Grubość warstwy kleju i tynku' },
     { label: 'Rekomendacja dla', title: 'Rekomendacja dla Twojej konfiguracji' },
   ];
 

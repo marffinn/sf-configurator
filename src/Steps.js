@@ -188,7 +188,7 @@ export function Step4(props) {
     { name: 'Podłoże', value: substrateLabel },
     { name: 'Typ izolacji', value: insulationTypeLabel },
     { name: 'Grubość izolacji', value: `${hD} mm` },
-    { name: 'Grubość warstwy kleju', value: `${adhesiveThickness} mm` },
+    { name: 'Grubość warstwy kleju i tynku', value: `${adhesiveThickness} mm` },
     { name: 'Głębokość zagłębienia', value: recessedDepth === 0 ? 'Brak (montaż na płasko)' : `${recessedDepth} mm` },
   ];
 
