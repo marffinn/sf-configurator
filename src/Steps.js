@@ -1,4 +1,5 @@
-// src/Steps.js – ZAKTUALIZOWANY: zakres suwaka 20–160 mm (krok 20 mm)
+// src/Steps.js – ZAKTUALIZOWANY: Wszystkie suwaki mają teraz widoczne znaczniki (marks) dla lepszej użyteczności.
+
 import React from 'react';
 import {
   Box, Button, Typography, FormControl, InputLabel, Select, MenuItem,
@@ -58,15 +59,37 @@ export function Step1(props) {
   );
 }
 
+// === UPDATED Step2 ===
 export function Step2(props) {
   const { hD, setHD, errors, nextStep, prevStep } = props;
   const handleChange = function (event, value) {
     return setHD(value);
   };
+
+  // Define marks for the insulation thickness slider
+  const marks = [
+    { value: 50, label: '50mm' },
+    { value: 100, label: '100mm' },
+    { value: 150, label: '150mm' },
+    { value: 200, label: '200mm' },
+    { value: 250, label: '250mm' },
+    { value: 300, label: '300mm' },
+    { value: 350, label: '350mm' },
+    { value: 400, label: '400mm' },
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2 }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość izolacji: {hD} mm</Typography>
-      <Slider value={hD} onChange={handleChange} valueLabelDisplay="auto" min={10} max={400} step={10} />
+      <Slider
+        value={hD}
+        onChange={handleChange}
+        valueLabelDisplay="auto"
+        min={10}
+        max={400}
+        step={10}
+        marks={marks} // Add the marks property
+      />
       {errors.hD && <Typography color="error" variant="caption">{errors.hD}</Typography>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
@@ -76,15 +99,34 @@ export function Step2(props) {
   );
 }
 
+// === UPDATED StepAdhesive ===
 export function StepAdhesive(props) {
   const { adhesiveThickness, setAdhesiveThickness, errors, prevStep, buttonText = 'Dalej', onNext } = props;
   const handleChange = function (event, value) {
     return setAdhesiveThickness(value);
   };
+
+  // Define marks for the adhesive thickness slider
+  const marks = [
+    { value: 10, label: '10mm' },
+    { value: 20, label: '20mm' },
+    { value: 30, label: '30mm' },
+    { value: 40, label: '40mm' },
+    { value: 50, label: '50mm' },
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2 }}>
       <Typography variant="body1" align="center" sx={{ mb: -1 }}>Grubość warstwy kleju: {adhesiveThickness} mm</Typography>
-      <Slider value={adhesiveThickness} onChange={handleChange} valueLabelDisplay="auto" min={10} max={50} step={5} />
+      <Slider
+        value={adhesiveThickness}
+        onChange={handleChange}
+        valueLabelDisplay="auto"
+        min={10}
+        max={50}
+        step={5}
+        marks={marks} // Add the marks property
+      />
       {errors.adhesiveThickness && <Typography color="error" variant="caption">{errors.adhesiveThickness}</Typography>}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
@@ -94,12 +136,9 @@ export function StepAdhesive(props) {
   );
 }
 
-// ZAKTUALIZOWANY: zakres 20–160 mm, krok 20 mm, domyślna 20 mm
 export function StepRecessedDepth(props) {
   const { recessedDepth, setRecessedDepth, errors, prevStep, buttonText = 'Dalej', onNext } = props;
-
   const useRecessed = recessedDepth > 0;
-
   const handleToggle = (event) => {
     const checked = event.target.checked;
     if (checked) {
@@ -108,28 +147,19 @@ export function StepRecessedDepth(props) {
       setRecessedDepth(0);
     }
   };
-
   const handleSliderChange = (event, value) => {
     setRecessedDepth(value);
   };
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <FormControlLabel
-          control={
-            <Switch
-              checked={useRecessed}
-              onChange={handleToggle}
-              color="primary"
-            />
-          }
+          control={<Switch checked={useRecessed} onChange={handleToggle} color="primary" />}
           label={useRecessed ? 'Tak' : 'Nie'}
           labelPlacement="end"
           sx={{ '& .MuiFormControlLabel-label': { fontWeight: 500 } }}
         />
       </Box>
-
       {useRecessed && (
         <Box sx={{ px: 2 }}>
           <Typography variant="body1" align="center" sx={{ mb: -1 }}>
@@ -143,14 +173,14 @@ export function StepRecessedDepth(props) {
             max={160}
             step={20}
             marks={[
-              { value: 20, label: '20 mm' },
-              { value: 40, label: '40 mm' },
-              { value: 60, label: '60 mm' },
-              { value: 80, label: '80 mm' },
-              { value: 100, label: '100 mm' },
-              { value: 120, label: '120 mm' },
-              { value: 140, label: '140 mm' },
-              { value: 160, label: '160 mm' }
+              { value: 20, label: '20mm' },
+              { value: 40, label: '40mm' },
+              { value: 60, label: '60mm' },
+              { value: 80, label: '80mm' },
+              { value: 100, label: '100mm' },
+              { value: 120, label: '120mm' },
+              { value: 140, label: '140mm' },
+              { value: 160, label: '160mm' }
             ]}
           />
           {errors.recessedDepth && (
@@ -160,17 +190,11 @@ export function StepRecessedDepth(props) {
           )}
         </Box>
       )}
-
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mt: 2 }}>
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           Wstecz
         </Button>
-        <Button
-          variant="contained"
-          onClick={onNext}
-          endIcon={<ArrowForwardIcon />}
-          sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >
+        <Button variant="contained" onClick={onNext} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           {buttonText}
         </Button>
       </Box>
@@ -247,13 +271,7 @@ export function Step4(props) {
                             href={rec.pdfLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            sx={{
-                              color: 'primary.main',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              textDecoration: 'none',
-                              '&:hover': { textDecoration: 'underline' }
-                            }}
+                            sx={{ color: 'primary.main', display: 'inline-flex', alignItems: 'center', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
                           >
                             <PictureAsPdfIcon sx={{ fontSize: 18, mr: 0.5 }} />
                             <span sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>PDF</span>
@@ -268,29 +286,16 @@ export function Step4(props) {
               </TableBody>
             </Table>
           </TableContainer>
-
           <Alert severity="success" sx={{ mb: 3 }}>
             Rekomendacje zostały wysłane na adres {email}. Sprawdź swoją skrzynkę odbiorczą!
           </Alert>
-
         </Box>
       ) : (
         <Typography variant="h6" align="center" sx={{ my: 4, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           Nie znaleziono odpowiedniego produktu. Prosimy o kontakt telefoniczny z naszym działem technicznym w celu uzyskania pomocy.
         </Typography>
       )}
-
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2, flexWrap: 'wrap' }}>
-        {/* {recommendations.length > 0 && (
-          <Button
-            variant="contained"
-            startIcon={<PictureAsPdfIcon />}
-            onClick={() => generatePdf(summaryData, recommendations)}
-            sx={{ width: { xs: '100%', sm: 'auto' } }}
-          >
-            Pobierz PDF
-          </Button>
-        )} */}
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
         <Button variant="outlined" onClick={handleStartOver} sx={{ width: { xs: '100%', sm: 'auto' } }}>Zacznij od nowa</Button>
       </Box>

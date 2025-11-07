@@ -1,11 +1,12 @@
-// src/App.js – PEŁNY, POPRAWIONY Z postMessage DO WORDPRESSA
+// src/App.js – PEŁNY KOD, POPRAWIONY PO BŁĘDZIE SYNTAX. Z NOWĄ KONFIGURACJĄ KROKÓW I CZYSTĄ FUNKCJĄ calculateLa.
+
 import React, { useState } from 'react';
 import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button, Switch, FormControlLabel } from '@mui/material';
 
-
 import { models, substrates, insulationTypes } from './data';
+// THIS IMPORT IS NOW CORRECT
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
 import './StepperCustom.css';
 import FoundationIcon from '@mui/icons-material/Foundation';
@@ -14,6 +15,7 @@ import HeightIcon from '@mui/icons-material/Height';
 import BuildIcon from '@mui/icons-material/Build';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 const getTheme = (mode) => createTheme({
   palette: {
@@ -106,11 +108,11 @@ function App() {
   const [errors, setErrors] = useState({});
 
   const updateFormData = (field, value) => {
-    setFormData(function (prev) { return { ...prev, [field]: value }; });
-    setErrors(function (prev) { return { ...prev, [field]: '' }; });
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const validateStep = function (currentStep) {
+  const validateStep = (currentStep) => {
     const newErrors = {};
     if (currentStep === 0 && !formData.substrate) newErrors.substrate = 'Wybierz rodzaj podłoża';
     if (currentStep === 1 && !formData.insulationType) newErrors.insulationType = 'Wybierz typ izolacji';
@@ -187,8 +189,10 @@ function App() {
 
     const recs = filteredModels.map(m => {
       const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
-      const isLDK = m.name.includes('LDK');
-      const effectiveAdhesiveThickness = isLDK ? adhesiveThickness - 10 : adhesiveThickness;
+      let effectiveAdhesiveThickness = adhesiveThickness;
+      if (m.adjustments?.adhesiveThickness) {
+        effectiveAdhesiveThickness += m.adjustments.adhesiveThickness.modifier || 0;
+      }
       const laMin = hef + hDEff + effectiveAdhesiveThickness;
       const laAvailable = m.availableLengths.find(l => l >= laMin);
       if (!laAvailable) return null;
@@ -207,76 +211,50 @@ function App() {
 
     if (sortedRecommendations.length > 0) {
       sendEmail(sortedRecommendations);
-
-      // === WYSYŁANIE STATYSTYK DO WORDPRESSA (tylko w iframe) ===
       const statsPayload = {
         substrate: formData.substrate,
         insulation_type: formData.insulationType,
         hD: formData.hD,
         adhesive_thickness: formData.adhesiveThickness,
         recessed_depth: formData.recessedDepth,
-        recommendations: sortedRecommendations.map(r => ({
-          name: r.name,
-          la: r.laRecommended
-        })),
+        recommendations: sortedRecommendations.map(r => ({ name: r.name, la: r.laRecommended })),
         email: email || null
       };
-
       if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-          type: 'SF_STATS',
-          payload: statsPayload
-        }, '*');
+        window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
       }
-      // === KONIEC ===
     }
-
     setStep(5);
   };
 
-  const nextStep = function () {
-    if (validateStep(step)) setStep(function (prev) { return prev + 1; });
-  };
+  const nextStep = () => { if (validateStep(step)) setStep(prev => prev + 1); };
+  const prevStep = () => { setStep(prev => prev - 1); };
 
-  const prevStep = function () {
-    setStep(function (prev) { return prev - 1; });
-  };
-
-  const goToStep = function (index) {
+  const goToStep = (index) => {
     if (index > step) {
       let isValid = true;
-      for (let i = step; i < index; i++) {
-        if (!validateStep(i)) {
-          isValid = false;
-          break;
-        }
-      }
+      for (let i = step; i < index; i++) { if (!validateStep(i)) { isValid = false; break; } }
       if (isValid) setStep(index);
     } else {
       setStep(index);
     }
   };
 
-  const handleStartOver = function () {
-    setFormData({
-      substrate: 'A',
-      insulationType: 'EPS',
-      hD: 10,
-      adhesiveThickness: 10,
-      recessedDepth: 0,
-    });
+  const handleStartOver = () => {
+    setFormData({ substrate: 'A', insulationType: 'EPS', hD: 10, adhesiveThickness: 10, recessedDepth: 0 });
     setRecommendations([]);
     setErrors({});
     setStep(0);
   };
 
-  const stepLabels = [
-    'Rodzaj podłoża',
-    'Typ izolacji',
-    'Montaż z zaślepką',
-    'Grubość izolacji',
-    'Grubość warstwy kleju',
-    'Rekomendacja dla',
+  // The new, centralized configuration for all step information
+  const stepsConfig = [
+    { label: 'Rodzaj podłoża', title: 'Wybierz rodzaj podłoża' },
+    { label: 'Typ izolacji', title: 'Wybierz typ izolacji' },
+    { label: 'Montaż z zaślepką', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
+    { label: 'Grubość izolacji', title: 'Podaj grubość izolacji' },
+    { label: 'Grubość warstwy kleju', title: 'Grubość warstwy kleju i tynku' },
+    { label: 'Rekomendacja dla', title: 'Rekomendacja dla Twojej konfiguracji' },
   ];
 
   const stepIconsList = [
@@ -291,72 +269,26 @@ function App() {
   function CustomStepIcon(props) {
     const { active, completed, error } = props;
     const iconIndex = props.icon - 1;
-
     if (error) {
       return (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            backgroundColor: 'error.main',
-            color: 'white',
-            fontSize: '1.2rem',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 0 0 3px rgba(244, 67, 54, 0.3)',
-          }}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', backgroundColor: 'error.main', color: 'white', fontSize: '1.2rem', transition: 'all 0.3s ease', boxShadow: '0 0 0 3px rgba(244, 67, 54, 0.3)', }}>
           {stepIconsList[iconIndex]}
         </Box>
       );
     }
-
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          backgroundColor: active ? 'primary.main' : completed ? 'primary.main' : 'grey.300',
-          color: active || completed ? 'white' : 'grey.600',
-          fontSize: '1.2rem',
-          transition: 'all 0.3s ease',
-          boxShadow: active ? '0 0 0 3px rgba(221, 0, 0, 0.3)' : 'none',
-        }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', backgroundColor: active ? 'primary.main' : completed ? 'primary.main' : 'grey.300', color: active || completed ? 'white' : 'grey.600', fontSize: '1.2rem', transition: 'all 0.3s ease', boxShadow: active ? '0 0 0 3px rgba(221, 0, 0, 0.3)' : 'none', }}>
         {stepIconsList[iconIndex]}
       </Box>
     );
   }
 
-
-
   const stepComponents = [
     <Step0 substrate={formData.substrate} setSubstrate={(v) => updateFormData('substrate', v)} errors={errors} nextStep={nextStep} />,
     <Step1 insulationType={formData.insulationType} setInsulationType={(v) => updateFormData('insulationType', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepRecessedDepth
-      recessedDepth={formData.recessedDepth}
-      setRecessedDepth={(v) => updateFormData('recessedDepth', v)}
-      errors={errors}
-      prevStep={prevStep}
-      buttonText="Dalej"
-      onNext={nextStep}
-    />,
+    <StepRecessedDepth recessedDepth={formData.recessedDepth} setRecessedDepth={(v) => updateFormData('recessedDepth', v)} errors={errors} prevStep={prevStep} buttonText="Dalej" onNext={nextStep} />,
     <Step2 hD={formData.hD} setHD={(v) => updateFormData('hD', v)} errors={errors} nextStep={nextStep} prevStep={prevStep} />,
-    <StepAdhesive
-      adhesiveThickness={formData.adhesiveThickness}
-      setAdhesiveThickness={(v) => updateFormData('adhesiveThickness', v)}
-      errors={errors}
-      prevStep={prevStep}
-      buttonText="Pokaż rekomendacje"
-      onNext={calculateLa}
-    />,
+    <StepAdhesive adhesiveThickness={formData.adhesiveThickness} setAdhesiveThickness={(v) => updateFormData('adhesiveThickness', v)} errors={errors} prevStep={prevStep} buttonText="Pokaż rekomendacje" onNext={calculateLa} />,
     <Step4 recommendations={recommendations} prevStep={prevStep} setStep={setStep} handleStartOver={handleStartOver} {...formData} errors={errors} email={email} />,
   ];
 
@@ -372,26 +304,22 @@ function App() {
         ) : (
           <>
             <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
-              {stepLabels.map((label, index) => (
-                <Step key={label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
+              {stepsConfig.map((config, index) => (
+                <Step key={config.label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
                   <StepLabel
                     slots={{ stepIcon: CustomStepIcon }}
                     onClick={() => goToStep(index)}
                     error={!!errors[Object.keys(formData)[index]]}
                     StepIconProps={{ error: !!errors[Object.keys(formData)[index]] }}
-                    sx={{
-                      cursor: 'pointer',
-                      fontSize: { xs: '0.75rem', sm: '0.9rem' },
-                      '& .MuiStepLabel-label': { fontSize: { xs: '0.75rem', sm: '0.9rem' }, fontWeight: 500 }
-                    }}
+                    sx={{ cursor: 'pointer', fontSize: { xs: '0.75rem', sm: '0.9rem' }, '& .MuiStepLabel-label': { fontSize: { xs: '0.75rem', sm: '0.9rem' }, fontWeight: 500 } }}
                   >
-                    {label}
+                    {config.label}
                   </StepLabel>
                 </Step>
               ))}
             </MuiStepper>
             <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
-              <Typography variant="h5" component="h2" gutterBottom align="center">{stepLabels[step]}</Typography>
+              <Typography variant="h5" component="h2" gutterBottom align="center">{stepsConfig[step].title}</Typography>
               <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
             </Box>
           </>

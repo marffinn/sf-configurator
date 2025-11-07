@@ -1,4 +1,5 @@
-// src/data.js – ZAKTUALIZOWANY: linki do PDF + + LXK 10 H + poprawne hasMetalPin
+// src/data.js – ZAKTUALIZOWANY: Reguły biznesowe przeniesione do obiektów modeli dla lepszej czytelności.
+
 export const models = [
   {
     name: 'LDK TZ',
@@ -7,8 +8,10 @@ export const models = [
     availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 340, 380, 420],
     material: 'polipropylen',
     hasMetalPin: true,
-    maxFixtureThickness: [40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 280, 320, 360],
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/1-ETA-2024.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/1-ETA-2024.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LDK TN',
@@ -17,8 +20,10 @@ export const models = [
     availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
     hasMetalPin: true,
-    maxFixtureThickness: [40, 80, 100, 120, 140, 160, 180, 200, 220, 240],
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/3-ETA-2024.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/3-ETA-2024.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LDH TZ',
@@ -27,8 +32,7 @@ export const models = [
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
     hasMetalPin: false,
-    maxFixtureThickness: [40, 60, 80, 100, 120],
-    pdfLink: null // brak dokumentacji
+    pdfLink: null
   },
   {
     name: 'LDH TN',
@@ -37,8 +41,7 @@ export const models = [
     availableLengths: [80, 100, 120, 140, 160],
     material: 'polipropylen',
     hasMetalPin: true,
-    maxFixtureThickness: [40, 60, 80, 100, 120],
-    pdfLink: null // brak dokumentacji
+    pdfLink: null
   },
   {
     name: 'LFH TZ',
@@ -47,7 +50,6 @@ export const models = [
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
-    maxFixtureThickness: [60, 80, 100, 120, 140, 160, 180, 200],
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_TZ-2-ETA-2021-06.05.2021.pdf'
   },
   {
@@ -57,7 +59,6 @@ export const models = [
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
-    maxFixtureThickness: [80, 100, 120, 140, 160, 180, 200, 220],
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LEH_TN-3-ETA-2021.pdf'
   },
   {
@@ -67,7 +68,6 @@ export const models = [
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: false,
-    maxFixtureThickness: [50, 60, 80, 100, 120, 140, 160, 180, 200, 220],
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_GZN-1-ETA-2021-06.05.2021.pdf'
   },
   {
@@ -77,8 +77,10 @@ export const models = [
     availableLengths: [80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
     hasMetalPin: false,
-    maxFixtureThickness: [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240],
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/2-ETA-2024.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/2-ETA-2024.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LXK 10 H',
@@ -87,7 +89,6 @@ export const models = [
     availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polipropylen',
     hasMetalPin: true,
-    maxFixtureThickness: [100, 120, 140, 160, 180, 200],
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LXK-4-ETA-2021.pdf'
   }
 ];
@@ -104,3 +105,5 @@ export const insulationTypes = [
   { value: 'EPS', label: 'Styropian (EPS/XPS)' },
   { value: 'MW', label: 'Wełna mineralna' }
 ];
+
+// The separate 'fastenerAdjustments' object has been removed.
