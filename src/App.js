@@ -2,9 +2,12 @@
 import React, { useState } from 'react';
 import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button } from '@mui/material';
+import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button, Switch, FormControlLabel } from '@mui/material';
+
+
 import { models, substrates, insulationTypes } from './data';
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
+import './StepperCustom.css';
 import FoundationIcon from '@mui/icons-material/Foundation';
 import LayersIcon from '@mui/icons-material/Layers';
 import HeightIcon from '@mui/icons-material/Height';
@@ -12,16 +15,42 @@ import BuildIcon from '@mui/icons-material/Build';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-const starfixTheme = createTheme({
+const getTheme = (mode) => createTheme({
   palette: {
-    mode: 'light',
-    primary: { main: '#dd0000' },
-    background: { default: '#f5f5f5', paper: '#ffffff' },
-    text: { primary: '#333333', secondary: '#555555' },
+    mode,
+    ...(mode === 'light' ? {
+      primary: { main: '#dd0000' },
+      background: { default: '#f5f5f5', paper: '#ffffff' },
+      text: { primary: '#333333', secondary: '#555555' },
+    } : {
+      primary: { main: '#ff6b6b' },
+      background: { default: '#121212', paper: '#1e1e1e' },
+      text: { primary: '#ffffff', secondary: '#bbbbbb' },
+    }),
   },
   components: {
-    MuiCssBaseline: { styleOverrides: { body: { backgroundImage: 'none' } } },
-    MuiTableHead: { styleOverrides: { root: { backgroundColor: '#f0f0f0' } } },
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage: 'none',
+          backgroundColor: mode === 'light' ? '#f5f5f5' : '#121212',
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          backgroundColor: mode === 'light' ? '#f0f0f0' : '#2a2a2a',
+        },
+      },
+    },
+    MuiStepLabel: {
+      styleOverrides: {
+        label: {
+          color: mode === 'light' ? '#333333' : '#ffffff',
+        },
+      },
+    },
   },
 });
 
@@ -61,6 +90,8 @@ function EmailStep({ setEmail, nextStep }) {
 }
 
 function App() {
+  const [themeMode, setThemeMode] = useState('light');
+  const theme = getTheme(themeMode);
   const [email, setEmail] = useState('');
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [step, setStep] = useState(0);
@@ -156,10 +187,12 @@ function App() {
 
     const recs = filteredModels.map(m => {
       const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
-      const laMin = hef + hDEff + adhesiveThickness;
+      const isLDK = m.name.includes('LDK');
+      const effectiveAdhesiveThickness = isLDK ? adhesiveThickness - 10 : adhesiveThickness;
+      const laMin = hef + hDEff + effectiveAdhesiveThickness;
       const laAvailable = m.availableLengths.find(l => l >= laMin);
       if (!laAvailable) return null;
-      const maxHD = (laAvailable - hef - adhesiveThickness) + recessedDepth;
+      const maxHD = (laAvailable - hef - effectiveAdhesiveThickness) + recessedDepth;
       if (maxHD < hD) return null;
       return { ...m, laRecommended: laAvailable, hef };
     }).filter(Boolean);
@@ -256,8 +289,30 @@ function App() {
   ];
 
   function CustomStepIcon(props) {
-    const { active, completed } = props;
+    const { active, completed, error } = props;
     const iconIndex = props.icon - 1;
+
+    if (error) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            backgroundColor: 'error.main',
+            color: 'white',
+            fontSize: '1.2rem',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 0 0 3px rgba(244, 67, 54, 0.3)',
+          }}
+        >
+          {stepIconsList[iconIndex]}
+        </Box>
+      );
+    }
 
     return (
       <Box
@@ -268,17 +323,19 @@ function App() {
           width: 40,
           height: 40,
           borderRadius: '50%',
-          backgroundColor: active ? '#dd0000' : completed ? '#4caf50' : '#e0e0e0',
-          color: active || completed ? '#ffffff' : '#999999',
+          backgroundColor: active ? 'primary.main' : completed ? 'primary.main' : 'grey.300',
+          color: active || completed ? 'white' : 'grey.600',
           fontSize: '1.2rem',
           transition: 'all 0.3s ease',
-          boxShadow: active ? '0 0 10px rgba(221, 0, 0, 0.3)' : 'none',
+          boxShadow: active ? '0 0 0 3px rgba(221, 0, 0, 0.3)' : 'none',
         }}
       >
         {stepIconsList[iconIndex]}
       </Box>
     );
   }
+
+
 
   const stepComponents = [
     <Step0 substrate={formData.substrate} setSubstrate={(v) => updateFormData('substrate', v)} errors={errors} nextStep={nextStep} />,
@@ -304,7 +361,7 @@ function App() {
   ];
 
   return (
-    <ThemeProvider theme={starfixTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
@@ -320,10 +377,12 @@ function App() {
                   <StepLabel
                     slots={{ stepIcon: CustomStepIcon }}
                     onClick={() => goToStep(index)}
+                    error={!!errors[Object.keys(formData)[index]]}
+                    StepIconProps={{ error: !!errors[Object.keys(formData)[index]] }}
                     sx={{
                       cursor: 'pointer',
-                      fontSize: { xs: '0.65rem', sm: '0.875rem' },
-                      '& .MuiStepLabel-label': { fontSize: { xs: '0.65rem', sm: '0.875rem' } }
+                      fontSize: { xs: '0.75rem', sm: '0.9rem' },
+                      '& .MuiStepLabel-label': { fontSize: { xs: '0.75rem', sm: '0.9rem' }, fontWeight: 500 }
                     }}
                   >
                     {label}
@@ -337,6 +396,12 @@ function App() {
             </Box>
           </>
         )}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <FormControlLabel
+            control={<Switch checked={themeMode === 'dark'} onChange={() => setThemeMode(themeMode === 'light' ? 'dark' : 'light')} />}
+            label={themeMode === 'light' ? 'Tryb Ciemny' : 'Tryb Jasny'}
+          />
+        </Box>
       </Container>
     </ThemeProvider>
   );

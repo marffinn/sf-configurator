@@ -195,7 +195,7 @@ export function Step4(props) {
 
   return (
     <Box>
-      <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto', backgroundColor: 'grey.100', boxShadow: 'none' }}>
+      <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto', backgroundColor: 'grey.100', boxShadow: 'none' }} id="summary-table">
         <Table size="small">
           <TableBody>
             {summaryData.map(function (row) {
@@ -281,6 +281,16 @@ export function Step4(props) {
       )}
 
       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2, flexWrap: 'wrap' }}>
+        {/* {recommendations.length > 0 && (
+          <Button
+            variant="contained"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={() => generatePdf(summaryData, recommendations)}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
+          >
+            Pobierz PDF
+          </Button>
+        )} */}
         <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={prevStep} sx={{ width: { xs: '100%', sm: 'auto' } }}>Wstecz</Button>
         <Button variant="outlined" onClick={handleStartOver} sx={{ width: { xs: '100%', sm: 'auto' } }}>Zacznij od nowa</Button>
       </Box>
