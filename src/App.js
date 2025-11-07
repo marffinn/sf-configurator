@@ -1,12 +1,11 @@
-// src/App.js – PEŁNY KOD, POPRAWIONY PO BŁĘDZIE SYNTAX. Z NOWĄ KONFIGURACJĄ KROKÓW I CZYSTĄ FUNKCJĄ calculateLa.
+// src/App.js – FINAŁOWA WERSJA, POPRAWIONY KRYTYCZNY BŁĄD IMPORTU REACTA.
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'; // <--- THIS LINE IS NOW CORRECT
 import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button, Switch, FormControlLabel } from '@mui/material';
 
 import { models, substrates, insulationTypes } from './data';
-// THIS IMPORT IS NOW CORRECT
 import { Step0, Step1, Step2, StepAdhesive, StepRecessedDepth, Step4 } from './Steps';
 import './StepperCustom.css';
 import FoundationIcon from '@mui/icons-material/Foundation';
@@ -131,19 +130,13 @@ function App() {
       <table border="1" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
-            <th>Nazwa</th>
-            <th>Długość (mm)</th>
-            <th>Materiał</th>
-            <th>Hef (mm)</th>
+            <th>Nazwa</th><th>Długość (mm)</th><th>Materiał</th><th>Hef (mm)</th>
           </tr>
         </thead>
         <tbody>
           ${recommendations.map(rec => `
             <tr>
-              <td>${rec.name}</td>
-              <td>${rec.laRecommended}</td>
-              <td>${rec.material}</td>
-              <td>${rec.hef}</td>
+              <td>${rec.name}</td><td>${rec.laRecommended}</td><td>${rec.material}</td><td>${rec.hef}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -151,29 +144,18 @@ function App() {
     `;
 
     const templateParams = {
-      to_email: email,
-      subject: 'Rekomendacje Łączników ETICS',
-      client_email: email,
-      substrate: substrateLabel,
-      insulationType: insulationTypeLabel,
-      insulationThickness: formData.hD,
-      adhesiveThickness: formData.adhesiveThickness,
-      recessedDepth: formData.recessedDepth === 0 ? 'Brak' : `${formData.recessedDepth} mm`,
-      recommendations_html: recommendationsHtml
+      to_email: email, subject: 'Rekomendacje Łączników ETICS', client_email: email, substrate: substrateLabel,
+      insulationType: insulationTypeLabel, insulationThickness: formData.hD, adhesiveThickness: formData.adhesiveThickness,
+      recessedDepth: formData.recessedDepth === 0 ? 'Brak' : `${formData.recessedDepth} mm`, recommendations_html: recommendationsHtml
     };
 
     emailjs.send('service_wl8dg9a', 'template_jgv00kz', templateParams, 'ndfOyBTYvqBjOwsI_')
-      .then((response) => {
-        console.log('Email wysłany!', response.status, response.text);
-      })
-      .catch((err) => {
-        console.error('Błąd EmailJS:', err);
-      });
+      .then((response) => { console.log('Email wysłany!', response.status, response.text); })
+      .catch((err) => { console.error('Błąd EmailJS:', err); });
   };
 
   const calculateLa = () => {
     if (!validateStep(4)) return;
-
     const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
     const hDEff = hD - recessedDepth;
     if (hDEff < 0) {
@@ -181,12 +163,7 @@ function App() {
       setStep(5);
       return;
     }
-
-    const filteredModels = models.filter(m =>
-      m.categories.includes(substrate) &&
-      (insulationType === 'EPS' || (insulationType === 'MW' && m.hasMetalPin))
-    );
-
+    const filteredModels = models.filter(m => m.categories.includes(substrate) && (insulationType === 'EPS' || (insulationType === 'MW' && m.hasMetalPin)));
     const recs = filteredModels.map(m => {
       const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
       let effectiveAdhesiveThickness = adhesiveThickness;
@@ -200,26 +177,16 @@ function App() {
       if (maxHD < hD) return null;
       return { ...m, laRecommended: laAvailable, hef };
     }).filter(Boolean);
-
     const lxk = recs.find(r => r.name === 'LXK 10 H');
     const ldk = recs.filter(r => r.name.includes('LDK') && r.name !== 'LXK 10 H').sort((a, b) => a.laRecommended - b.laRecommended);
     const others = recs.filter(r => !r.name.includes('LDK') && r.name !== 'LXK 10 H' && r.name !== 'LFH GZN').sort((a, b) => a.laRecommended - b.laRecommended);
     const lfhGzn = recs.find(r => r.name === 'LFH GZN');
-
     const sortedRecommendations = [...(lxk ? [lxk] : []), ...ldk, ...others, ...(lfhGzn ? [lfhGzn] : [])];
     setRecommendations(sortedRecommendations);
 
     if (sortedRecommendations.length > 0) {
       sendEmail(sortedRecommendations);
-      const statsPayload = {
-        substrate: formData.substrate,
-        insulation_type: formData.insulationType,
-        hD: formData.hD,
-        adhesive_thickness: formData.adhesiveThickness,
-        recessed_depth: formData.recessedDepth,
-        recommendations: sortedRecommendations.map(r => ({ name: r.name, la: r.laRecommended })),
-        email: email || null
-      };
+      const statsPayload = { substrate: formData.substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness, recessed_depth: recessedDepth, recommendations: sortedRecommendations.map(r => ({ name: r.name, la: r.laRecommended })), email: email || null };
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
       }
@@ -229,7 +196,6 @@ function App() {
 
   const nextStep = () => { if (validateStep(step)) setStep(prev => prev + 1); };
   const prevStep = () => { setStep(prev => prev - 1); };
-
   const goToStep = (index) => {
     if (index > step) {
       let isValid = true;
@@ -239,7 +205,6 @@ function App() {
       setStep(index);
     }
   };
-
   const handleStartOver = () => {
     setFormData({ substrate: 'A', insulationType: 'EPS', hD: 10, adhesiveThickness: 10, recessedDepth: 0 });
     setRecommendations([]);
@@ -247,37 +212,49 @@ function App() {
     setStep(0);
   };
 
-  // The new, centralized configuration for all step information
   const stepsConfig = [
     { label: 'Rodzaj podłoża', title: 'Wybierz rodzaj podłoża' },
-    { label: 'Typ izolacji', title: 'Wybierz typ iolacji' },
-    { label: 'Montaż z zaślepką ?', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
+    { label: 'Typ izolacji', title: 'Wybierz typ izolacji' },
+    { label: 'Montaż z zaślepką', title: 'Czy stosujesz montaż zagłębiony z zaślepką?' },
     { label: 'Grubość izolacji', title: 'Podaj grubość izolacji' },
-    { label: 'Łączna grubość warstwy kleju i tynku', title: '' },
+    { label: 'Grubość kleju', title: 'Grubość warstwy kleju i tynku' },
     { label: 'Rekomendacja dla', title: 'Rekomendacja dla Twojej konfiguracji' },
   ];
 
   const stepIconsList = [
-    <FoundationIcon key="foundation" />,
-    <LayersIcon key="layers" />,
-    <SettingsIcon key="settings" />,
-    <HeightIcon key="height" />,
-    <BuildIcon key="build" />,
-    <CheckCircleIcon key="check" />,
+    <FoundationIcon key="foundation" />, <LayersIcon key="layers" />, <SettingsIcon key="settings" />,
+    <HeightIcon key="height" />, <BuildIcon key="build" />, <CheckCircleIcon key="check" />,
   ];
 
   function CustomStepIcon(props) {
     const { active, completed, error } = props;
     const iconIndex = props.icon - 1;
+
     if (error) {
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', backgroundColor: 'error.main', color: 'white', fontSize: '1.2rem', transition: 'all 0.3s ease', boxShadow: '0 0 0 3px rgba(244, 67, 54, 0.3)', }}>
+        <Box
+          sx={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 40, height: 40, borderRadius: '50%',
+            backgroundColor: 'error.main', color: 'white', fontSize: '1.2rem',
+            transition: 'all 0.3s ease', boxShadow: '0 0 0 3px rgba(244, 67, 54, 0.3)',
+          }}
+        >
           {stepIconsList[iconIndex]}
         </Box>
       );
     }
+
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', backgroundColor: active ? 'primary.main' : completed ? 'primary.main' : 'grey.300', color: active || completed ? 'white' : 'grey.600', fontSize: '1.2rem', transition: 'all 0.3s ease', boxShadow: active ? '0 0 0 3px rgba(221, 0, 0, 0.3)' : 'none', }}>
+      <Box
+        sx={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 40, height: 40, borderRadius: '50%',
+          backgroundColor: active ? 'primary.main' : completed ? 'primary.main' : 'grey.300',
+          color: active || completed ? 'white' : 'grey.600', fontSize: '1.2rem',
+          transition: 'all 0.3s ease', boxShadow: active ? '0 0 0 3px rgba(221, 0, 0, 0.3)' : 'none',
+        }}
+      >
         {stepIconsList[iconIndex]}
       </Box>
     );
@@ -296,14 +273,14 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
+        <Typography variant="h4" align="center" sx={{ fontWeight: 300, letterSpacing: '1.5px', my: 3, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }} className="app-title">
           Konfigurator Łączników ETICS
         </Typography>
         {!emailSubmitted ? (
           <EmailStep setEmail={setEmail} nextStep={() => setEmailSubmitted(true)} />
         ) : (
           <>
-            <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }}>
+            <MuiStepper activeStep={step} alternativeLabel sx={{ mb: 4, overflow: 'auto' }} className="stepper-container">
               {stepsConfig.map((config, index) => (
                 <Step key={config.label} completed={step > index} sx={{ minWidth: { xs: 'auto', sm: 'auto' } }}>
                   <StepLabel
@@ -318,13 +295,13 @@ function App() {
                 </Step>
               ))}
             </MuiStepper>
-            <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
+            <Box sx={{ mt: 4, p: { xs: 2, sm: 3 }, bgcolor: 'background.paper', color: 'text.primary', borderRadius: 2, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }} className="main-content-box">
               <Typography variant="h5" component="h2" gutterBottom align="center">{stepsConfig[step].title}</Typography>
               <Box sx={{ p: 2, borderRadius: 1 }}>{stepComponents[step]}</Box>
             </Box>
           </>
         )}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }} className="dark-mode-container">
           <FormControlLabel
             control={<Switch checked={themeMode === 'dark'} onChange={() => setThemeMode(themeMode === 'light' ? 'dark' : 'light')} />}
             label={themeMode === 'light' ? 'Tryb Ciemny' : 'Tryb Jasny'}

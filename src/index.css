@@ -1,8 +1,11 @@
+/* Previous css content is correct */
 * {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
 }
@@ -25,4 +28,48 @@ h5 {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* === ADD/UPDATE THESE STYLES AT THE END OF THE FILE === */
+
+/* By default, the logo is not visible on the screen */
+.print-logo {
+  display: none;
+}
+
+@media print {
+
+  /* When printing, display the logo */
+  .print-logo {
+    display: block;
+    max-width: 200px;
+    /* Adjust size as needed */
+    margin-bottom: 2rem;
+    /* Space below the logo */
+    /* Center the logo */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Hide all elements that are not essential for the final report */
+  .app-title,
+  .stepper-container,
+  .dark-mode-container,
+  .action-buttons-container,
+  .email-alert {
+    display: none !important;
+  }
+
+  /* Reset styles on the main container for a clean print layout */
+  .main-content-box {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure the body has a standard white background for printing */
+  body {
+    background: #fff !important;
+  }
 }
