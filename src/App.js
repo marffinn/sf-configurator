@@ -154,46 +154,125 @@ function App() {
       .catch((err) => { console.error('Błąd EmailJS:', err); });
   };
 
+  // const calculateLa = () => {
+  //   if (!validateStep(4)) return;
+  //   const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
+  //   const hDEff = hD - recessedDepth;
+  //   if (hDEff < 0) {
+  //     setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji' });
+  //     setStep(5);
+  //     return;
+  //   }
+  //   const filteredModels = models.filter(m => m.categories.includes(substrate) && (insulationType === 'EPS' || (insulationType === 'MW' && m.hasMetalPin)));
+  //   const recs = filteredModels.map(m => {
+  //     const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
+  //     let effectiveAdhesiveThickness = adhesiveThickness;
+  //     if (m.adjustments?.adhesiveThickness) {
+  //       effectiveAdhesiveThickness += m.adjustments.adhesiveThickness.modifier || 0;
+  //     }
+  //     const laMin = hef + hDEff + effectiveAdhesiveThickness;
+  //     const laAvailable = m.availableLengths.find(l => l >= laMin);
+  //     if (!laAvailable) return null;
+  //     const maxHD = (laAvailable - hef - effectiveAdhesiveThickness) + recessedDepth;
+  //     if (maxHD < hD) return null;
+  //     return { ...m, laRecommended: laAvailable, hef };
+  //   }).filter(Boolean);
+  //   const lxk = recs.find(r => r.name === 'LXK 10 H');
+  //   const ldk = recs.filter(r => r.name.includes('LDK') && r.name !== 'LXK 10 H').sort((a, b) => a.laRecommended - b.laRecommended);
+  //   const others = recs.filter(r => !r.name.includes('LDK') && r.name !== 'LXK 10 H' && r.name !== 'LFH GZN').sort((a, b) => a.laRecommended - b.laRecommended);
+  //   const lfhGzn = recs.find(r => r.name === 'LFH GZN');
+  //   const sortedRecommendations = [...(lxk ? [lxk] : []), ...ldk, ...others, ...(lfhGzn ? [lfhGzn] : [])];
+  //   setRecommendations(sortedRecommendations);
+
+  //   if (sortedRecommendations.length > 0) {
+  //     sendEmail(sortedRecommendations);
+  //     const statsPayload = { substrate: formData.substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness, recessed_depth: recessedDepth, recommendations: sortedRecommendations.map(r => ({ name: r.name, la: r.laRecommended })), email: email || null };
+  //     if (window.parent && window.parent !== window) {
+  //       window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
+  //     }
+  //   }
+  //   setStep(5);
+  // };
+
   const calculateLa = () => {
     if (!validateStep(4)) return;
+
     const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
     const hDEff = hD - recessedDepth;
+
     if (hDEff < 0) {
-      setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji' });
+      setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
       setStep(5);
       return;
     }
-    const filteredModels = models.filter(m => m.categories.includes(substrate) && (insulationType === 'EPS' || (insulationType === 'MW' && m.hasMetalPin)));
-    const recs = filteredModels.map(m => {
-      const hef = typeof m.hef === 'object' ? m.hef[substrate] : m.hef;
-      let effectiveAdhesiveThickness = adhesiveThickness;
-      if (m.adjustments?.adhesiveThickness) {
-        effectiveAdhesiveThickness += m.adjustments.adhesiveThickness.modifier || 0;
-      }
-      const laMin = hef + hDEff + effectiveAdhesiveThickness;
-      const laAvailable = m.availableLengths.find(l => l >= laMin);
-      if (!laAvailable) return null;
-      const maxHD = (laAvailable - hef - effectiveAdhesiveThickness) + recessedDepth;
-      if (maxHD < hD) return null;
-      return { ...m, laRecommended: laAvailable, hef };
-    }).filter(Boolean);
-    const lxk = recs.find(r => r.name === 'LXK 10 H');
-    const ldk = recs.filter(r => r.name.includes('LDK') && r.name !== 'LXK 10 H').sort((a, b) => a.laRecommended - b.laRecommended);
-    const others = recs.filter(r => !r.name.includes('LDK') && r.name !== 'LXK 10 H' && r.name !== 'LFH GZN').sort((a, b) => a.laRecommended - b.laRecommended);
-    const lfhGzn = recs.find(r => r.name === 'LFH GZN');
-    const sortedRecommendations = [...(lxk ? [lxk] : []), ...ldk, ...others, ...(lfhGzn ? [lfhGzn] : [])];
-    setRecommendations(sortedRecommendations);
 
-    if (sortedRecommendations.length > 0) {
-      sendEmail(sortedRecommendations);
-      const statsPayload = { substrate: formData.substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness, recessed_depth: recessedDepth, recommendations: sortedRecommendations.map(r => ({ name: r.name, la: r.laRecommended })), email: email || null };
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
+    const recommendations = [];
+    let lxkAdded = false;
+
+    // === FUNKCJA POMOCNICZA: Dodaj model z obliczoną laRecommended ===
+    const addModel = (model) => {
+      const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
+      const adhesiveAdjustment = model.adjustments?.adhesiveThickness?.modifier || 0;
+      const laRequired = hDEff + hef + adhesiveAdjustment;
+      const laRecommended = model.availableLengths.find(len => len >= laRequired);
+
+      if (laRecommended) {
+        recommendations.push({ ...model, laRecommended, hef });
+      }
+    };
+
+    // === REGUŁA 1: LXK – montaż na płasko, hD >= 100 mm ===
+    if (recessedDepth === 0 && hD >= 100) {
+      const lxkModel = models.find(m => m.name === 'LXK 10 H');
+      if (lxkModel && lxkModel.categories.includes(substrate)) {
+        addModel(lxkModel);
+        lxkAdded = true;
       }
     }
+
+    // === REGUŁA 2: LXK – montaż zagłębiony, recessedDepth >= 20 mm, hD >= 120 mm ===
+    if (recessedDepth >= 20 && hD >= 120) {
+      const lxkModel = models.find(m => m.name === 'LXK 10 H');
+      if (lxkModel && lxkModel.categories.includes(substrate) && !lxkAdded) {
+        addModel(lxkModel);
+        lxkAdded = true;
+      }
+    }
+
+    // === DODAJ WSZYSTKIE POZOSTAŁE PASUJĄCE MODELE (oprócz LXK, jeśli już dodany) ===
+    models
+      .filter(model =>
+        model.name !== 'LXK 10 H' &&
+        model.categories.includes(substrate) &&
+        (!model.insulationType || model.insulationType === insulationType)
+      )
+      .forEach(addModel);
+
+    // === SORTOWANIE: LXK na górze, reszta po laRecommended ===
+    recommendations.sort((a, b) => {
+      if (a.name === 'LXK 10 H') return -1;
+      if (b.name === 'LXK 10 H') return 1;
+      return a.laRecommended - b.laRecommended;
+    });
+
+    // === ZAPISZ, WYŚLIJ, PRZEJDŹ ===
+    setRecommendations(recommendations);
+    if (recommendations.length > 0) {
+      sendEmail(recommendations);
+    }
+
+    const statsPayload = {
+      substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness,
+      recessed_depth: recessedDepth,
+      recommendations: recommendations.map(r => ({ name: r.name, la: r.laRecommended })),
+      email: email || null
+    };
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
+    }
+
     setStep(5);
   };
-
   const nextStep = () => { if (validateStep(step)) setStep(prev => prev + 1); };
   const prevStep = () => { setStep(prev => prev - 1); };
   const goToStep = (index) => {
