@@ -89,7 +89,10 @@ export const models = [
     availableLengths: [160, 180, 200, 220, 240, 260],
     material: 'polipropylen',
     hasMetalPin: true,
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LXK-4-ETA-2021.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LXK-4-ETA-2021.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   }
 ];
 
