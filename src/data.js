@@ -9,8 +9,14 @@ export const models = [
     hasMetalPin: true,
     pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/1-ETA-2024.pdf',
     adjustments: {
-      adhesiveThickness: { modifier: -10 }
-    }
+      adhesiveThickness: { modifier: +10 }
+    },
+    priorityRules: [
+      {
+        condition: (formData) => formData.recessedDepth >= 20 && formData.hD >= 120,
+        label: 'Montaż zagłębiony ≥ 20 mm, izolacja ≥ 120 mm'
+      }
+    ]
   },
   {
     name: 'LDK TN',
@@ -21,7 +27,7 @@ export const models = [
     hasMetalPin: true,
     pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/3-ETA-2024.pdf',
     adjustments: {
-      adhesiveThickness: { modifier: -10 }
+      adhesiveThickness: { modifier: +10 }
     }
   },
   {
@@ -49,7 +55,10 @@ export const models = [
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_TZ-2-ETA-2021-06.05.2021.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_TZ-2-ETA-2021-06.05.2021.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LEH TN',
@@ -58,7 +67,10 @@ export const models = [
     availableLengths: [120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: true,
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LEH_TN-3-ETA-2021.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LEH_TN-3-ETA-2021.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LFH GZN',
@@ -67,7 +79,10 @@ export const models = [
     availableLengths: [90, 100, 120, 140, 160, 180, 200, 220, 240, 260],
     material: 'polietylen HDPE',
     hasMetalPin: false,
-    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_GZN-1-ETA-2021-06.05.2021.pdf'
+    pdfLink: 'https://starfix.eu/wp-content/uploads/2021/05/LFH_GZN-1-ETA-2021-06.05.2021.pdf',
+    adjustments: {
+      adhesiveThickness: { modifier: -10 }
+    }
   },
   {
     name: 'LDK GZN',
@@ -90,7 +105,8 @@ export const models = [
     hasMetalPin: true,
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LXK-4-ETA-2021.pdf',
     adjustments: {
-      adhesiveThickness: { modifier: -10 }
+      adhesiveThickness: { modifier: -10 },
+
     },
     priorityRules: [
       {
