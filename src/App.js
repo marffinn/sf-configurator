@@ -194,6 +194,86 @@ function App() {
   //   setStep(5);
   // };
 
+  //   const calculateLa = () => {
+  //   if (!validateStep(4)) return;
+
+  //   const { substrate, insulationType, hD, adhesiveThickness, recessedDepth } = formData;
+  //   const hDEff = hD - recessedDepth;
+
+  //   if (hDEff < 0) {
+  //     setErrors({ global: 'Głębokość zagłębienia nie może być większa niż grubość izolacji.' });
+  //     setStep(5);
+  //     return;
+  //   }
+
+  //   const recommendations = [];
+  //   let lxkAdded = false;
+
+  //   // === FUNKCJA POMOCNICZA: Dodaj model z obliczoną laRecommended ===
+  //   const addModel = (model) => {
+  //     const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
+  //     const adhesiveAdjustment = model.adjustments?.adhesiveThickness?.modifier || 0;
+  //     const laRequired = hDEff + hef + adhesiveAdjustment;
+  //     const laRecommended = model.availableLengths.find(len => len >= laRequired);
+
+  //     if (laRecommended) {
+  //       recommendations.push({ ...model, laRecommended, hef });
+  //     }
+  //   };
+
+  //   // === REGUŁA 1: LXK – montaż na płasko, hD >= 100 mm ===
+  //   if (recessedDepth === 0 && hD >= 100) {
+  //     const lxkModel = models.find(m => m.name === 'LXK 10 H');
+  //     if (lxkModel && lxkModel.categories.includes(substrate)) {
+  //       addModel(lxkModel);
+  //       lxkAdded = true;
+  //     }
+  //   }
+
+  //   // === REGUŁA 2: LXK – montaż zagłębiony, recessedDepth >= 20 mm, hD >= 120 mm ===
+  //   if (recessedDepth >= 20 && hD >= 120) {
+  //     const lxkModel = models.find(m => m.name === 'LXK 10 H');
+  //     if (lxkModel && lxkModel.categories.includes(substrate) && !lxkAdded) {
+  //       addModel(lxkModel);
+  //       lxkAdded = true;
+  //     }
+  //   }
+
+  //   // === DODAJ WSZYSTKIE POZOSTAŁE PASUJĄCE MODELE (oprócz LXK, jeśli już dodany) ===
+  //   models
+  //     .filter(model => 
+  //       model.name !== 'LXK 10 H' && 
+  //       model.categories.includes(substrate) &&
+  //       (!model.insulationType || model.insulationType === insulationType)
+  //     )
+  //     .forEach(addModel);
+
+  //   // === SORTOWANIE: LXK na górze, reszta po laRecommended ===
+  //   recommendations.sort((a, b) => {
+  //     if (a.name === 'LXK 10 H') return -1;
+  //     if (b.name === 'LXK 10 H') return 1;
+  //     return a.laRecommended - b.laRecommended;
+  //   });
+
+  //   // === ZAPISZ, WYŚLIJ, PRZEJDŹ ===
+  //   setRecommendations(recommendations);
+  //   if (recommendations.length > 0) {
+  //     sendEmail(recommendations);
+  //   }
+
+  //   const statsPayload = {
+  //     substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness,
+  //     recessed_depth: recessedDepth,
+  //     recommendations: recommendations.map(r => ({ name: r.name, la: r.laRecommended })),
+  //     email: email || null
+  //   };
+  //   if (window.parent && window.parent !== window) {
+  //     window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
+  //   }
+
+  //   setStep(5);
+  // };
+
   const calculateLa = () => {
     if (!validateStep(4)) return;
 
@@ -207,59 +287,48 @@ function App() {
     }
 
     const recommendations = [];
-    let lxkAdded = false;
+    const formContext = { hD, recessedDepth, substrate, insulationType }; // kontekst do warunków
 
-    // === FUNKCJA POMOCNICZA: Dodaj model z obliczoną laRecommended ===
+    // === FUNKCJA POMOCNICZA: dodaj model ===
     const addModel = (model) => {
       const hef = typeof model.hef === 'object' ? model.hef[substrate] : model.hef;
-      const adhesiveAdjustment = model.adjustments?.adhesiveThickness?.modifier || 0;
-      const laRequired = hDEff + hef + adhesiveAdjustment;
-      const laRecommended = model.availableLengths.find(len => len >= laRequired);
-
+      const adj = model.adjustments?.adhesiveThickness?.modifier || 0;
+      const laRequired = hDEff + hef + adj;
+      const laRecommended = model.availableLengths.find(l => l >= laRequired);
       if (laRecommended) {
         recommendations.push({ ...model, laRecommended, hef });
       }
     };
 
-    // === REGUŁA 1: LXK – montaż na płasko, hD >= 100 mm ===
-    if (recessedDepth === 0 && hD >= 100) {
-      const lxkModel = models.find(m => m.name === 'LXK 10 H');
-      if (lxkModel && lxkModel.categories.includes(substrate)) {
-        addModel(lxkModel);
-        lxkAdded = true;
+    // === 1. DODAJ MODELE Z PRIORYTETAMI ===
+    models.forEach(model => {
+      if (model.priorityRules && model.categories.includes(substrate)) {
+        const shouldPrioritize = model.priorityRules.some(rule => rule.condition(formContext));
+        if (shouldPrioritize) {
+          addModel(model);
+        }
       }
-    }
+    });
 
-    // === REGUŁA 2: LXK – montaż zagłębiony, recessedDepth >= 20 mm, hD >= 120 mm ===
-    if (recessedDepth >= 20 && hD >= 120) {
-      const lxkModel = models.find(m => m.name === 'LXK 10 H');
-      if (lxkModel && lxkModel.categories.includes(substrate) && !lxkAdded) {
-        addModel(lxkModel);
-        lxkAdded = true;
-      }
-    }
-
-    // === DODAJ WSZYSTKIE POZOSTAŁE PASUJĄCE MODELE (oprócz LXK, jeśli już dodany) ===
+    // === 2. DODAJ POZOSTAŁE PASUJĄCE MODELE (bez duplikatów) ===
+    const addedNames = new Set(recommendations.map(r => r.name));
     models
-      .filter(model =>
-        model.name !== 'LXK 10 H' &&
-        model.categories.includes(substrate) &&
-        (!model.insulationType || model.insulationType === insulationType)
-      )
+      .filter(m => !addedNames.has(m.name) && m.categories.includes(substrate))
+      .filter(m => !m.insulationType || m.insulationType === insulationType)
       .forEach(addModel);
 
-    // === SORTOWANIE: LXK na górze, reszta po laRecommended ===
+    // === 3. SORTOWANIE: najpierw priorytetowe, potem po laRecommended ===
     recommendations.sort((a, b) => {
-      if (a.name === 'LXK 10 H') return -1;
-      if (b.name === 'LXK 10 H') return 1;
+      const aPrio = a.priorityRules?.some(r => r.condition(formContext)) || false;
+      const bPrio = b.priorityRules?.some(r => r.condition(formContext)) || false;
+      if (aPrio && !bPrio) return -1;
+      if (!aPrio && bPrio) return 1;
       return a.laRecommended - b.laRecommended;
     });
 
-    // === ZAPISZ, WYŚLIJ, PRZEJDŹ ===
+    // === 4. ZAPISZ, WYŚLIJ, PRZEJDŹ ===
     setRecommendations(recommendations);
-    if (recommendations.length > 0) {
-      sendEmail(recommendations);
-    }
+    if (recommendations.length > 0) sendEmail(recommendations);
 
     const statsPayload = {
       substrate, insulation_type: insulationType, hD, adhesive_thickness: adhesiveThickness,
