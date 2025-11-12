@@ -1,4 +1,3 @@
-// src/data.js – ZAKTUALIZOWANY: Reguły biznesowe przeniesione do obiektów modeli dla lepszej czytelności.
 
 export const models = [
   {
@@ -17,7 +16,7 @@ export const models = [
     name: 'LDK TN',
     hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
     categories: ['A', 'B', 'C', 'D', 'E'],
-    availableLengths: [100, 140, 160, 180, 200, 220, 240, 260, 280, 300],
+    availableLengths: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
     material: 'polipropylen',
     hasMetalPin: true,
     pdfLink: 'https://starfix.eu/wp-content/uploads/2025/08/3-ETA-2024.pdf',
@@ -108,5 +107,3 @@ export const insulationTypes = [
   { value: 'EPS', label: 'Styropian (EPS/XPS)' },
   { value: 'MW', label: 'Wełna mineralna' }
 ];
-
-// The separate 'fastenerAdjustments' object has been removed.
