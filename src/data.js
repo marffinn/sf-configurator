@@ -1,4 +1,3 @@
-
 export const models = [
   {
     name: 'LDK TZ',
@@ -11,12 +10,16 @@ export const models = [
     adjustments: {
       adhesiveThickness: { modifier: +10 }
     },
-    priorityRules: [
-      {
-        condition: (formData) => formData.recessedDepth >= 20 && formData.hD >= 120,
-        label: 'Montaż zagłębiony ≥ 20 mm, izolacja ≥ 120 mm'
-      }
-    ]
+    // priorityRules: [
+    //   {
+    //     condition: (formData) => formData.recessedDepth === 0 && formData.hD >= 100,
+    //     label: 'Montaż na płasko, izolacja ≥ 100 mm'
+    //   },
+    //   {
+    //     condition: (formData) => formData.recessedDepth >= 20 && formData.hD >= 120,
+    //     label: 'Montaż zagłębiony ≥ 20 mm, izolacja ≥ 120 mm'
+    //   }
+    // ]
   },
   {
     name: 'LDK TN',
@@ -105,8 +108,7 @@ export const models = [
     hasMetalPin: true,
     pdfLink: 'https://starfix.eu/wp-content/uploads/2021/04/LXK-4-ETA-2021.pdf',
     adjustments: {
-      adhesiveThickness: { modifier: -10 },
-
+      adhesiveThickness: { modifier: -10 }
     },
     priorityRules: [
       {
