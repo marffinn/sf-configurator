@@ -33,24 +33,7 @@ export const models = [
       adhesiveThickness: { modifier: +10 }
     }
   },
-  {
-    name: 'LDH TZ',
-    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
-    categories: ['C'],
-    availableLengths: [80, 100, 120, 140, 160],
-    material: 'polipropylen',
-    hasMetalPin: false,
-    pdfLink: null
-  },
-  {
-    name: 'LDH TN',
-    hef: { 'A': 25, 'B': 80, 'C': 80, 'D': 80, 'E': 80 },
-    categories: ['C'],
-    availableLengths: [80, 100, 120, 140, 160],
-    material: 'polipropylen',
-    hasMetalPin: true,
-    pdfLink: null
-  },
+
   {
     name: 'LFH TZ',
     hef: 40,

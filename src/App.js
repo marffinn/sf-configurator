@@ -1,6 +1,6 @@
-// src/App.js – FINAŁOWA WERSJA, POPRAWIONY KRYTYCZNY BŁĄD IMPORTU REACTA.
+// src/App.js – FINAL VERSION WITH PRIORITY BOOST + FULL LOGIC
 
-import React, { useState } from 'react'; // <--- THIS LINE IS NOW CORRECT
+import React, { useState } from 'react';
 import emailjs from 'emailjs-com';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box, Container, Typography, Stepper as MuiStepper, Step, StepLabel, TextField, Button, Switch, FormControlLabel } from '@mui/material';
@@ -14,7 +14,6 @@ import HeightIcon from '@mui/icons-material/Height';
 import BuildIcon from '@mui/icons-material/Build';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-
 
 const getTheme = (mode) => createTheme({
   palette: {
@@ -99,7 +98,7 @@ function App() {
   const [formData, setFormData] = useState({
     substrate: 'A',
     insulationType: 'EPS',
-    hD: 120,
+    hD: 80,
     adhesiveThickness: 10,
     recessedDepth: 0,
   });
@@ -154,44 +153,33 @@ function App() {
       .catch((err) => { console.error('Błąd EmailJS:', err); });
   };
 
+  // ====== FINAL calculateLa WITH PRIORITY BOOST ======
+  const calculateLa = () => {
+    if (!validateStep(4)) return;
 
-  function calculateLa() {
-    // Validate all required form fields before proceeding
-    if (!validateStep(4)) {
-      return;
-    }
-
-    // Extract form data
     const insulation_thickness = formData.hD;
     const recessed_depth = formData.recessedDepth;
     const substrate = formData.substrate;
     const adhesiveThickness = formData.adhesiveThickness;
 
-    // Array to store final recommendations
     const recommendations = [];
 
-    // Loop through every model in the models array
     for (let i = 0; i < models.length; i++) {
       const model = models[i];
 
-      // STEP 1: Check if model supports current substrate
-      if (!model.categories.includes(substrate)) {
-        continue; // Skip this model
-      }
+      if (!model.categories.includes(substrate)) continue;
 
-      // STEP 2: Determine effective anchorage depth (hef)
       let hef = 0;
       if (typeof model.hef === 'object' && model.hef !== null) {
         if (model.hef.hasOwnProperty(substrate)) {
           hef = model.hef[substrate];
         } else {
-          continue; // No hef defined for this substrate
+          continue;
         }
       } else {
         hef = model.hef;
       }
 
-      // STEP 3: Calculate adjustment from adhesive thickness
       let adjustment = 0;
       if (
         model.adjustments &&
@@ -201,89 +189,77 @@ function App() {
         adjustment = model.adjustments.adhesiveThickness.modifier;
       }
 
-      // STEP 4: Calculate effective insulation thickness
       const effective_insulation = insulation_thickness - recessed_depth;
-
-      // STEP 5: Calculate minimum required length (L_min)
       const L_min = effective_insulation + hef + adjustment;
 
-      // STEP 6: Find the smallest available length >= L_min
       let laRecommended = null;
       for (let j = 0; j < model.availableLengths.length; j++) {
         const length = model.availableLengths[j];
         if (length >= L_min) {
           laRecommended = length;
-          break; // Take the shortest valid length
+          break;
         }
       }
 
-      // STEP 7: If no valid length found, skip
-      if (laRecommended === null) {
+      if (laRecommended === null) continue;
+
+      if (model.name === 'LXK 10 H' && laRecommended <= 149) {
         continue;
       }
 
-      // STEP 8: LXK RULE — EXCLUDE LXK 10 H IF laRecommended <= 149
-      if (model.name === 'LXK 10 H' && laRecommended <= 149) {
-        continue; // Do NOT recommend LXK 10 H for short lengths
-      }
-
-      // STEP 9: PRIORITY RULES — Only recommend if at least one rule passes
+      // PRIORITY BOOST: Check if any rule matches
+      let priority = 0;
+      let priorityLabel = null;
       if (model.priorityRules && model.priorityRules.length > 0) {
-        let priorityPassed = false;
         for (let k = 0; k < model.priorityRules.length; k++) {
           const rule = model.priorityRules[k];
           if (rule.condition(formData)) {
-            priorityPassed = true;
+            priority = 1;
+            priorityLabel = rule.label;
             break;
           }
         }
-        if (!priorityPassed) {
-          continue; // Skip model if no priority rule matches
-        }
       }
 
-      // STEP 10: Add valid recommendation
       recommendations.push({
         name: model.name,
         laRecommended: laRecommended,
         material: model.material,
         hef: hef,
         pdfLink: model.pdfLink || null,
+        priority: priority,
+        priorityLabel: priorityLabel,
       });
     }
 
-    // STEP 11: Sort recommendations by laRecommended (ascending)
-    recommendations.sort(function (a, b) {
+    // SORT: Priority first, then length
+    recommendations.sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority;
       return a.laRecommended - b.laRecommended;
     });
 
-    // STEP 12: Update state
     setRecommendations(recommendations);
 
-    // STEP 13: Send email if recommendations exist and email is provided
     if (recommendations.length > 0 && email) {
       sendEmail(recommendations);
     }
 
-    // STEP 14: Send stats via postMessage if in iframe
     const statsPayload = {
       substrate: substrate,
       insulation_type: formData.insulationType,
       insulation_thickness: insulation_thickness,
       adhesive_thickness: adhesiveThickness,
       recessed_depth: recessed_depth,
-      recommendations: recommendations.map(function (r) {
-        return { name: r.name, la: r.laRecommended };
-      }),
+      recommendations: recommendations.map(r => ({ name: r.name, la: r.laRecommended })),
       email: email || null
     };
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'SF_STATS', payload: statsPayload }, '*');
     }
 
-    // STEP 15: Move to final step
     setStep(5);
-  }
+  };
+  // ===============================================
 
   const nextStep = () => { if (validateStep(step)) setStep(prev => prev + 1); };
   const prevStep = () => { setStep(prev => prev - 1); };
@@ -297,7 +273,7 @@ function App() {
     }
   };
   const handleStartOver = () => {
-    setFormData({ substrate: 'A', insulationType: 'EPS', hD: 10, adhesiveThickness: 10, recessedDepth: 0 });
+    setFormData({ substrate: 'A', insulationType: 'EPS', hD: 80, adhesiveThickness: 10, recessedDepth: 0 });
     setRecommendations([]);
     setErrors({});
     setStep(0);
